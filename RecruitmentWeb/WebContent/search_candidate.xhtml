@@ -1,0 +1,205 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+
+<ui:composition template="/WEB-INF/templates/BasicTemplate.xhtml">
+
+	<ui:define name="content">
+
+		<f:event type="preRenderView"
+			listener="#{candidateController.beforeSearch}" />
+
+		<div class="title ui-widget-header ui-corner-all">
+			<h:panelGrid style="margin:auto;">
+		BUSCAR POSTULANTES
+		</h:panelGrid>
+
+		</div>
+
+		<h:form id="formSearch">
+
+			<h:panelGrid style="margin:auto;">
+
+				<h:panelGrid style="margin:auto;text-align:center;">
+					<p:messages id="messages"></p:messages>
+				</h:panelGrid>
+
+				<h:panelGrid columns="6">
+					<p:outputLabel value="N° de documento"></p:outputLabel>
+					<p:inputText style="width: 180px;"
+						value="#{candidateController.candidateDocumentNumberSearch}"></p:inputText>
+					<p:outputLabel value="Nombres"></p:outputLabel>
+					<p:inputText style="width: 180px;"
+						value="#{candidateController.candidateNameSearch}"></p:inputText>
+						
+					<p:outputLabel value=""></p:outputLabel>
+					<p:outputLabel value=""></p:outputLabel>
+					
+					<p:outputLabel value="Fecha Agendamiento"></p:outputLabel>
+					<p:calendar value="#{candidateController.scheduledAtSearch}"></p:calendar>
+					
+					<p:outputLabel value="Fecha Creacion"></p:outputLabel>
+					<p:calendar value="#{candidateController.createdAtSearch}" ></p:calendar>
+					
+					<p:outputLabel value=""></p:outputLabel>
+					<p:outputLabel value=""></p:outputLabel>
+					
+					
+
+					<p:outputLabel value="Area"></p:outputLabel>
+					<p:selectOneMenu id="areas"
+						value="#{candidateController.areaSelected}">
+						<f:selectItem itemValue="" itemLabel="Seleccione..."></f:selectItem>
+						<f:selectItem itemValue="t" itemLabel="Todos"></f:selectItem>
+						<f:selectItems value="#{candidateController.areas}"></f:selectItems>
+						<p:ajax listener="#{candidateController.searchSubAreas}" 
+							update=":formSearch:subAreas :formSearch:messages"></p:ajax>
+					</p:selectOneMenu>
+					
+					<p:outputLabel value="Subarea"></p:outputLabel>
+					<p:selectOneMenu id="subAreas"
+						value="#{candidateController.subAreaSelected}">
+						<f:selectItem itemValue="" itemLabel="Seleccione..."></f:selectItem>
+						<f:selectItem itemValue="t" itemLabel="Todos"></f:selectItem>
+						<f:selectItems value="#{candidateController.subAreas}"></f:selectItems>
+					</p:selectOneMenu>
+					
+					<p:outputLabel value="Reclutador"></p:outputLabel>
+					<p:selectOneMenu id="recruiters"
+						value="#{candidateController.recruiterSelected}">
+						<f:selectItem itemValue="" itemLabel="Seleccione..."></f:selectItem>
+						<f:selectItems value="#{candidateController.recruiters}"></f:selectItems>
+					</p:selectOneMenu>
+						
+
+					<p:outputLabel value="Entrevista"></p:outputLabel>
+					<p:selectOneMenu id="interviewStates"
+						value="#{candidateController.interviewStateSelected}">
+						<f:selectItem itemValue="" itemLabel="Seleccione..."></f:selectItem>
+						<f:selectItems value="#{candidateController.interviewStates}"></f:selectItems>
+					</p:selectOneMenu>
+
+					
+					
+					<p:outputLabel value="Capacitacion"></p:outputLabel>
+					<p:selectOneMenu id="trainingStates"
+						value="#{candidateController.trainingStateSelected}">
+						<f:selectItem itemValue="" itemLabel="Seleccione..."></f:selectItem>
+						<f:selectItems value="#{candidateController.trainingStates}"></f:selectItems>
+					</p:selectOneMenu>
+					
+					<p:outputLabel value="OJT"></p:outputLabel>
+					<p:selectOneMenu id="ojtStates"
+						value="#{candidateController.ojtStateSelected}">
+						<f:selectItem itemValue="" itemLabel="Seleccione..."></f:selectItem>
+						<f:selectItems value="#{candidateController.ojtStates}"></f:selectItems>
+					</p:selectOneMenu>
+
+				</h:panelGrid>
+
+
+				<h:panelGrid style="margin:auto;text-align:center;">
+					<p:commandButton icon="ui-icon-search"
+						actionListener="#{candidateController.search}" value="Buscar"
+						process="@form"
+						update=":formSearch:searchTable :formSearch:messages :formSearch:candidateId :formSearch:editButtom">
+					</p:commandButton>
+				</h:panelGrid>
+
+			</h:panelGrid>
+
+			<h:panelGrid columns="3">
+				<p:commandButton icon="ui-icon-plus" value="Agregar"
+					action="add_candidate.xhtml">
+				</p:commandButton>
+
+				<p:commandButton id="editButtom" action="edit_candidate.xhtml"
+					icon="ui-icon-pencil" value="Editar" escape="false" ajax="false">
+					<f:param name="candidateId"
+						value="#{candidateController.candidateSelected.id}"></f:param>
+				</p:commandButton>
+				<p:outputLabel id="candidateId"
+					value="Postulante seleccionado: #{candidateController.candidateSelected!=null?candidateController.candidateSelected.id:''}">
+				</p:outputLabel>
+			</h:panelGrid>
+
+
+			<p:dataTable value="#{candidateController.candidates}" var="c"
+				rowKey="#{c.id}" paginator="true" rows="10" id="searchTable"
+				selectionMode="single"
+				selection="#{candidateController.candidateSelected}">
+
+				<p:ajax event="rowSelect"
+					update=":formSearch:candidateId :formSearch:editButtom" />
+				<p:ajax event="rowUnselect"
+					update=":formSearch:candidateId :formSearch:editButtom" />
+
+				<p:column headerText="ID" sortBy="#{c.id}">
+					<h:outputText value="#{c.id}"></h:outputText>
+				</p:column>
+
+				<p:column headerText="N° de Documento" sortBy="#{c.documentNumber}">
+					<h:outputText value="#{c.documentNumber}"></h:outputText>
+				</p:column>
+
+				<p:column headerText="Nombres" sortBy="#{c.firstname}">
+					<h:outputText value="#{c.firstname}"></h:outputText>
+				</p:column>
+
+				<p:column headerText="Apellidos" sortBy="#{c.lastname}">
+					<h:outputText value="#{c.lastname}"></h:outputText>
+				</p:column>
+
+				<p:column headerText="Area" sortBy="#{c.area.area.name}">
+					<h:outputText value="#{c.area.area.name}"></h:outputText>
+				</p:column>
+
+				<p:column headerText="Subarea" sortBy="#{c.area.name}">
+					<h:outputText value="#{c.area.name}"></h:outputText>
+				</p:column>
+				
+				<p:column headerText="Entrevista" sortBy="#{c.interviewStateName}">
+				<h:outputText value="#{c.interviewStateName} "></h:outputText>
+				</p:column>
+				
+				<p:column headerText="Capacitacion" sortBy="#{c.trainingStateName}">
+					<h:outputText value="#{c.trainingStateName}"></h:outputText>
+				</p:column>
+				
+				<p:column headerText="Ojt" sortBy="#{c.ojtStateName}">
+				<h:outputText value="#{c.ojtStateName}"></h:outputText>
+				</p:column>
+				
+				<p:column headerText="Agendado" sortBy="#{c.scheduledAt}" width="120">
+				<h:outputText value="#{c.scheduledAt}">
+				<f:convertDateTime pattern="dd-MM-yyyy hh:mm:ss a" />
+				</h:outputText>
+				</p:column>
+				
+				<p:column headerText="Fecha creacion" sortBy="#{c.createdAt}" width="120">
+					<h:outputText value="#{c.createdAt}">
+					<f:convertDateTime pattern="dd-MM-yyyy hh:mm:ss a" />
+					</h:outputText>
+				</p:column>
+				
+
+				<p:column headerText="Reclutador"
+					sortBy="#{c.recruiter.firstname} #{c.recruiter.lastname}">
+					<h:outputText
+						value="#{c.recruiter.firstname} #{c.recruiter.lastname}">
+					</h:outputText>
+				</p:column>
+
+			</p:dataTable>
+
+
+		</h:form>
+	</ui:define>
+
+</ui:composition>
+</html>

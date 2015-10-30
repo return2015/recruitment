@@ -1,0 +1,270 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+
+<ui:composition template="/WEB-INF/templates/BasicTemplate.xhtml">
+
+	<ui:define name="content">
+		<f:event type="preRenderView"
+			listener="#{candidateController.beforeAdd}" />
+		<div class="title ui-widget-header ui-corner-all">
+			<h:panelGrid style="margin:auto;">
+		AGREGAR POSTULANTE
+		</h:panelGrid>
+
+		</div>
+		<h:form id="formAdd">
+			<h:panelGrid style="margin:auto;">
+
+				<h:panelGrid style="margin:auto;text-align:center;">
+					<p:messages id="messages"></p:messages>
+				</h:panelGrid>
+
+				<h:panelGrid columns="4">
+
+					<p:outputLabel value="Nombres"></p:outputLabel>
+					<p:inputText tabindex="1"
+						value="#{candidateController.candidateSelected.firstname}"
+						style="width: 300px;" required="true"
+						requiredMessage="Debe ingresar Nombres"></p:inputText>
+
+					<p:outputLabel value="Fecha Nacimiento"></p:outputLabel>
+					<p:calendar id="bornDate" tabindex="12"
+						value="#{candidateController.candidateSelected.bornDate}"
+						navigator="true" mindate="#{candidateController.minDate}"
+						maxdate="#{candidateController.maxDate}" pattern="dd-MM-yyyy"
+						required="true" yearRange="-50:-18"
+						requiredMessage="Debe seleccionar fecha de nacimiento.">
+						<p:ajax event="dateSelect" update=":formAdd:age :formAdd:messages"
+							listener="#{candidateController.calculateAge}" />
+					</p:calendar>
+
+					<p:outputLabel value="Apellidos"></p:outputLabel>
+					<p:inputText tabindex="2"
+						value="#{candidateController.candidateSelected.lastname}"
+						style="width: 300px;" required="true"
+						requiredMessage="Debe ingresar Apellidos"></p:inputText>
+
+					<p:outputLabel value="Edad"></p:outputLabel>
+					<p:outputLabel id="age" value="#{candidateController.age}" tabindex="13"></p:outputLabel>
+
+					<p:outputLabel value="Tipo de documento"></p:outputLabel>
+					<p:selectOneMenu tabindex="3"
+						value="#{candidateController.candidateSelected.documentType}"
+						required="true"
+						requiredMessage="Debe seleccionar tipo de documento">
+						<f:selectItem itemValue="DNI" itemLabel="DNI"></f:selectItem>
+						<f:selectItem itemValue="Carnet de Extranjería"
+							itemLabel="Carnet de Extranjería"></f:selectItem>
+					</p:selectOneMenu>
+
+					<p:outputLabel value="Correo"></p:outputLabel>
+					<p:inputText style="width: 300px;" tabindex="14"
+						value="#{candidateController.candidateSelected.mail}"></p:inputText>
+
+					<p:outputLabel value="Número de documento"></p:outputLabel>
+					<p:inputText tabindex="4"
+						value="#{candidateController.candidateSelected.documentNumber}"
+						required="true"
+						requiredMessage="Debe ingresar número de documento"></p:inputText>
+
+					<p:outputLabel value="Formación académica"></p:outputLabel>
+					<p:selectOneMenu tabindex="15"
+						value="#{candidateController.educationLevelSelected}"
+						required="true"
+						requiredMessage="Debe ingresar formación académica">
+						<f:selectItem itemValue="" itemLabel="Seleccione"></f:selectItem>
+						<f:selectItems value="#{candidateController.educationLevels}"></f:selectItems>
+					</p:selectOneMenu>
+
+					<p:outputLabel value="Telefono móvil"></p:outputLabel>
+					<p:inputText tabindex="5"
+						value="#{candidateController.candidateSelected.cellPhone}"
+						required="true" requiredMessage="Debe ingresar telefono móvil."></p:inputText>
+
+					<p:outputLabel value="Último trabajo"></p:outputLabel>
+					<p:inputText style="width: 300px;" required="true" tabindex="16"
+						requiredMessage="Debe ingresar último trabajo."
+						value="#{candidateController.candidateSelected.lastJob}"></p:inputText>
+
+					<p:outputLabel value="Telefono fijo"></p:outputLabel>
+					<p:inputText value="#{candidateController.candidateSelected.phone}" tabindex="6"></p:inputText>
+					
+					<p:outputLabel value="Area"></p:outputLabel>
+					<p:selectOneMenu id="areas" tabindex="17"
+						value="#{candidateController.areaSelected}">
+						<f:selectItem itemValue="" itemLabel="Seleccione..."></f:selectItem>
+						<f:selectItems value="#{candidateController.areas}"></f:selectItems>
+						<p:ajax listener="#{candidateController.searchSubAreas}" 
+							update=":formAdd:subAreas :formAdd:messages"></p:ajax>
+					</p:selectOneMenu>
+					
+
+					<p:outputLabel value="Dirección"></p:outputLabel>
+					<p:inputText style="width: 300px;" tabindex="7"
+						value="#{candidateController.candidateSelected.homeAddress}"
+						required="true" requiredMessage="Debe ingresar dirección."></p:inputText>
+
+					<p:outputLabel value="SubArea"></p:outputLabel>
+					<p:selectOneMenu id="subAreas" required="true" tabindex="18"
+						requiredMessage="Debe seleccionar: Subarea."
+						value="#{candidateController.subAreaSelected}">
+						<f:selectItem itemValue="" itemLabel="Seleccione"></f:selectItem>
+						<f:selectItems value="#{candidateController.subAreas}"></f:selectItems>
+					</p:selectOneMenu>
+
+					<p:outputLabel value="País"></p:outputLabel>
+					<p:selectOneMenu id="country" required="true"
+						requiredMessage="Debe seleccionar país." tabindex="8"
+						value="#{candidateController.countrySelected}">
+						<f:selectItem itemValue="" itemLabel="Seleccione"></f:selectItem>
+						<f:selectItems value="#{candidateController.countries}"></f:selectItems>
+						<p:ajax listener="#{candidateController.searchDepartments}"
+							update=":formAdd:department :formAdd:province :formAdd:district :formAdd:messages"></p:ajax>
+					</p:selectOneMenu>
+
+					<p:outputLabel value="Experiencia"></p:outputLabel>
+					<p:selectOneMenu tabindex="19"
+						value="#{candidateController.candidateSelected.experience}"
+						required="true" requiredMessage="Debe ingresar: Experiencia.">
+						<f:selectItem itemValue="" itemLabel="Seleccione"></f:selectItem>
+						<f:selectItem itemValue="0 a 6 Meses" itemLabel="0 a 6 Meses"></f:selectItem>
+						<f:selectItem itemValue="6 a 12 Meses" itemLabel="6 a 12 Meses"></f:selectItem>
+						<f:selectItem itemValue="12 meses a mas"
+							itemLabel="12 meses a más"></f:selectItem>
+					</p:selectOneMenu>
+
+					<p:outputLabel value="Departamento"></p:outputLabel>
+					<p:selectOneMenu id="department" tabindex="9"
+						value="#{candidateController.departmentSelected}">
+						<f:selectItem itemValue="" itemLabel="Seleccione"></f:selectItem>
+						<f:selectItems value="#{candidateController.departments}"></f:selectItems>
+						<p:ajax listener="#{candidateController.searchProvinces}"
+							update=":formAdd:province :formAdd:district :formAdd:messages"></p:ajax>
+					</p:selectOneMenu>
+
+					<p:outputLabel value="Tipo de ingreso"></p:outputLabel>
+					<p:selectOneMenu tabindex="20"
+						value="#{candidateController.candidateSelected.entryType}"
+						required="true" requiredMessage="Debe ingresar: Tipo de ingreso.">
+						<f:selectItem itemValue="" itemLabel="Seleccione"></f:selectItem>
+						<f:selectItem itemValue="PRIMERA VEZ" itemLabel="PRIMERA VEZ"></f:selectItem>
+						<f:selectItem itemValue="REINGRESO" itemLabel="REINGRESO"></f:selectItem>
+						<f:selectItem itemValue="NO ADMITIDO" itemLabel="NO ADMITIDO"></f:selectItem>
+					</p:selectOneMenu>
+
+					<p:outputLabel value="Provincia"></p:outputLabel>
+					<p:selectOneMenu id="province" tabindex="10"
+						value="#{candidateController.provinceSelected}">
+						<f:selectItem itemValue="" itemLabel="Seleccione"></f:selectItem>
+						<f:selectItems value="#{candidateController.provinces}"></f:selectItems>
+						<p:ajax listener="#{candidateController.searchDistricts}"
+							update=":formAdd:district :formAdd:messages"></p:ajax>
+					</p:selectOneMenu>
+
+					<p:outputLabel value="Fuente de reclutamiento"></p:outputLabel>
+					<p:selectOneMenu required="true" tabindex="21"
+						requiredMessage="Debe seleccionar fuente de reclutamiento."
+						value="#{candidateController.recruimentSourceSelected}">
+						<f:selectItem itemValue="" itemLabel="Seleccione"></f:selectItem>
+						<f:selectItems value="#{candidateController.recruimentSources}"></f:selectItems>
+						<p:ajax listener="#{candidateController.onChangeRecruitmentSource}"
+							update=":formAdd:agentNameLabel :formAdd:agentNameValue
+							:formAdd:agentDocumentNumberLabel :formAdd:agentDocumentNumberValue 
+							:formAdd:agentCampaignLabel :formAdd:agentCampaignValue
+							:formAdd:messages"></p:ajax>
+					</p:selectOneMenu>
+
+					<p:outputLabel value="Distrito"></p:outputLabel>
+					<p:selectOneMenu id="district" tabindex="11"
+						value="#{candidateController.districtSelected}">
+						<f:selectItem itemValue="" itemLabel="Seleccione"></f:selectItem>
+						<f:selectItems value="#{candidateController.districts}"></f:selectItems>
+					</p:selectOneMenu>
+
+					<h:panelGroup id="agentNameLabel">
+					<p:outputLabel value="Nombre de agente" rendered="#{candidateController.isReferred or candidateController.isFlier}"></p:outputLabel>
+					<p:outputLabel value="Nombre de Feria" rendered="#{candidateController.isJobFair}"></p:outputLabel>
+					</h:panelGroup>
+					
+					<h:panelGroup id="agentNameValue">
+					<p:inputText style="width: 200px;" rendered="#{candidateController.isReferred or candidateController.isFlier}"
+						value="#{candidateController.candidateSelected.agentName}"
+						required="true" requiredMessage="Debe ingresar nombre de agente."></p:inputText>
+					<p:inputText style="width: 200px;" rendered="#{candidateController.isJobFair}"
+						value="#{candidateController.candidateSelected.jobFairName}"
+						required="true" requiredMessage="Debe ingresar nombre de feria."></p:inputText>	
+					</h:panelGroup>
+					
+					<p:outputLabel value="Estado"></p:outputLabel>
+					<p:selectOneMenu tabindex="22"
+						value="#{candidateController.interviewStateSelected}">
+						<f:selectItem itemValue="" itemLabel="Seleccione"></f:selectItem>
+						<f:selectItem itemValue="a" itemLabel="Agendado"></f:selectItem>
+						<f:selectItems value="#{candidateController.interviewStates}"></f:selectItems>
+						<p:ajax listener="#{candidateController.onChangeState}"
+							update=":formAdd:calendarLabel :formAdd:calendarValue
+							:formAdd:messages"></p:ajax>
+					</p:selectOneMenu>
+					
+					<h:panelGroup id="agentDocumentNumberLabel">
+					<p:outputLabel value="DNI" rendered="#{candidateController.isReferred}"></p:outputLabel>
+					</h:panelGroup>
+					
+					<h:panelGroup id="agentDocumentNumberValue">
+					<p:inputText style="width: 200px;" rendered="#{candidateController.isReferred}"
+						value="#{candidateController.candidateSelected.agentDocumentNumber}"
+						required="true" requiredMessage="Debe ingresar DNI."></p:inputText>
+					</h:panelGroup>
+
+					<h:panelGroup id="calendarLabel">
+						<p:outputLabel value="Fecha de agendamiento"
+							rendered="#{candidateController.isScheduled}"></p:outputLabel>
+						<p:outputLabel value="Fecha de entrevista"
+							rendered="#{candidateController.isPending}"></p:outputLabel>
+					</h:panelGroup>
+					
+					<h:panelGroup id="calendarValue">
+						<p:calendar rendered="#{candidateController.isScheduled}" tabindex="23"
+							value="#{candidateController.candidateSelected.scheduledAt}"
+							pattern="dd-MM-yyyy hh:mm:ss a" required="true" stepMinute="10"
+							requiredMessage="Debe seleccionar fecha de agendamiento">
+						</p:calendar>
+						<p:calendar rendered="#{candidateController.isPending}" tabindex="23"
+							value="#{candidateController.interviewedAt}"
+							pattern="dd-MM-yyyy hh:mm:ss a" required="true" stepMinute="10"
+							requiredMessage="Debe seleccionar fecha de entrevista.">
+						</p:calendar>
+					</h:panelGroup>
+					
+					
+					<h:panelGroup id="agentCampaignLabel">
+					<p:outputLabel value="Campaña" rendered="#{candidateController.isReferred}"></p:outputLabel>
+					</h:panelGroup>
+					
+					<h:panelGroup id="agentCampaignValue">
+					<p:inputText style="width: 200px;" rendered="#{candidateController.isReferred}"
+						value="#{candidateController.candidateSelected.agentCampaign}"
+						required="true" requiredMessage="Debe ingresar campaña."></p:inputText>
+					</h:panelGroup>
+
+				</h:panelGrid>
+
+
+
+				<h:panelGrid style="margin:auto;text-align:center;">
+					<p:commandButton action="#{candidateController.add}"
+						value="Agregar" ajax="false" tabindex="24">
+					</p:commandButton>
+				</h:panelGrid>
+			</h:panelGrid>
+		</h:form>
+	</ui:define>
+
+</ui:composition>
+</html>
