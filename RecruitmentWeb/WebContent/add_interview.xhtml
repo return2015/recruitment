@@ -1,0 +1,219 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+
+<ui:composition template="/templates/BasicTemplate.xhtml">
+
+	<ui:define name="metadata">
+		<f:metadata>
+			<f:viewAction action="#{addInterviewController.initialize}" />
+		</f:metadata>
+	</ui:define>
+
+
+	<ui:define name="content">
+
+		<div class="title ui-widget-header ui-corner-all">
+			<h:panelGrid style="margin:auto;">
+		AGREGAR ENTREVISTA
+		</h:panelGrid>
+
+		</div>
+
+		<h:panelGrid style="margin:auto;text-align:center;">
+			<p:messages id="messages"></p:messages>
+		</h:panelGrid>
+
+
+		<h:form id="form">
+			<h:panelGrid style="margin:auto;">
+
+
+				<h:panelGrid columns="2" rowClasses="panelgrid_center_row">
+					<p:fieldset legend="DATOS DE POSTULANTE">
+						<h:panelGrid columns="2">
+
+
+							<p:outputLabel value="Tipo Documento"></p:outputLabel>
+							<h:panelGroup>
+								<p:selectOneMenu 
+									value="#{addInterviewController.interviewSelected.candidate.documentType}"
+									required="true"
+									requiredMessage="Debe seleccionar tipo de documento">
+									<f:selectItem itemValue="DNI" itemLabel="DNI"></f:selectItem>
+									<f:selectItem itemValue="Carnet de Extranjería"
+										itemLabel="Carnet de Extranjería"></f:selectItem>
+								</p:selectOneMenu>
+								<p:spacer width="4" height="1"></p:spacer>
+								<p:outputLabel value="# Documento"></p:outputLabel>
+								<p:spacer width="4" height="1"></p:spacer>
+								<p:inputText  style="width:80px;"
+									value="#{addInterviewController.documentNumber}"
+									required="true"
+									requiredMessage="Debe ingresar número de documento">
+									<p:ajax listener="#{addInterviewController.searchCandidate}" event="blur" update="@form :messages" />
+									</p:inputText>
+								<p:spacer width="4" height="1"></p:spacer>
+								<p:outputLabel id="info" value="#{addInterviewController.info}" style="color:red;font-style:italic;"></p:outputLabel>	
+							</h:panelGroup>
+
+							<p:outputLabel value="Nombres"></p:outputLabel>
+							<p:inputText 
+								value="#{addInterviewController.interviewSelected.candidate.firstname}"
+								style="width: 300px;" required="true"
+								requiredMessage="Debe ingresar Nombres"></p:inputText>
+
+							<p:outputLabel value="Apellidos"></p:outputLabel>
+							<p:inputText 
+								value="#{addInterviewController.interviewSelected.candidate.lastname}"
+								style="width: 300px;" required="true"
+								requiredMessage="Debe ingresar Apellidos"></p:inputText>
+							<p:outputLabel value="Fecha Nacimiento"></p:outputLabel>
+							<h:panelGroup>
+								<p:calendar id="bornDate" 
+									value="#{addInterviewController.interviewSelected.candidate.bornDate}"
+									navigator="true" mindate="#{addInterviewController.minDate}"
+									maxdate="#{addInterviewController.maxDate}"
+									pattern="dd-MM-yyyy" required="true" yearRange="-50:-18"
+									requiredMessage="Debe seleccionar fecha de nacimiento.">
+									<p:ajax event="dateSelect" update=":form:age :messages"
+										listener="#{addInterviewController.calculateAge}" />
+								</p:calendar>
+								<p:spacer width="4" height="1"></p:spacer>
+								<p:outputLabel value="Edad"></p:outputLabel>
+								<p:spacer width="4" height="1"></p:spacer>
+								<p:outputLabel id="age" value="#{addInterviewController.age}"
+									></p:outputLabel>
+							</h:panelGroup>
+
+							<p:outputLabel value="Correo"></p:outputLabel>
+							<p:inputText style="width: 300px;" 
+								value="#{addInterviewController.interviewSelected.candidate.mail}"></p:inputText>
+
+							<p:outputLabel value="Telefono móvil"></p:outputLabel>
+							<h:panelGroup>
+								<p:inputText style="width:80px;"
+									value="#{addInterviewController.interviewSelected.candidate.cellPhone}"
+									required="true" requiredMessage="Debe ingresar telefono móvil."></p:inputText>
+								<p:spacer width="4" height="1"></p:spacer>
+								<p:outputLabel value="Telefono fijo"></p:outputLabel>
+								<p:spacer width="4" height="1"></p:spacer>
+								<p:inputText style="width:80px;"
+									value="#{addInterviewController.interviewSelected.candidate.phone}"
+									></p:inputText>
+							</h:panelGroup>
+							<p:outputLabel value="Dirección"></p:outputLabel>
+							<p:inputText style="width: 300px;" 
+								value="#{addInterviewController.interviewSelected.candidate.homeAddress}"
+								required="true" requiredMessage="Debe ingresar dirección."></p:inputText>
+
+							<p:outputLabel value="País"></p:outputLabel>
+							<h:panelGroup>
+								<p:selectOneMenu id="country" required="true"
+									style="width:80px;" requiredMessage="Debe seleccionar país."
+									value="#{addInterviewController.countrySelected}">
+									<f:selectItem itemValue="" itemLabel="Seleccione"></f:selectItem>
+									<f:selectItems value="#{addInterviewController.countries}"></f:selectItems>
+									<p:ajax listener="#{addInterviewController.searchDepartments}"
+										update=":form:department :form:province :form:district :messages"></p:ajax>
+								</p:selectOneMenu>
+								<p:spacer width="4" height="1"></p:spacer>
+								<p:outputLabel value="Departamento"></p:outputLabel>
+								<p:spacer width="4" height="1"></p:spacer>
+								<p:selectOneMenu id="department" 
+									style="width:80px;"
+									value="#{addInterviewController.departmentSelected}">
+									<f:selectItem itemValue="" itemLabel="Seleccione"></f:selectItem>
+									<f:selectItems value="#{addInterviewController.departments}"></f:selectItems>
+									<p:ajax listener="#{addInterviewController.searchProvinces}"
+										update=":form:province :form:district :messages"></p:ajax>
+								</p:selectOneMenu>
+							</h:panelGroup>
+							<p:outputLabel value="Provincia"></p:outputLabel>
+							<h:panelGroup>
+								<p:selectOneMenu id="province"  style="width:80px;"
+									value="#{addInterviewController.provinceSelected}">
+									<f:selectItem itemValue="" itemLabel="Seleccione"></f:selectItem>
+									<f:selectItems value="#{addInterviewController.provinces}"></f:selectItems>
+									<p:ajax listener="#{addInterviewController.searchDistricts}"
+										update=":form:district :messages"></p:ajax>
+								</p:selectOneMenu>
+								<p:spacer width="4" height="1"></p:spacer>
+								<p:outputLabel value="Distrito"></p:outputLabel>
+								<p:spacer width="40" height="1"></p:spacer>
+								<p:selectOneMenu id="district" style="width:80px;"
+									value="#{addInterviewController.districtSelected}">
+									<f:selectItem itemValue="" itemLabel="Seleccione"></f:selectItem>
+									<f:selectItems value="#{addInterviewController.districts}"></f:selectItems>
+								</p:selectOneMenu>
+							</h:panelGroup>
+
+							<p:outputLabel value="Formación académica"></p:outputLabel>
+							<h:panelGroup>
+								<p:selectOneMenu style="width:80px;"
+									value="#{addInterviewController.educationLevelSelected}"
+									required="true"
+									requiredMessage="Debe ingresar formación académica">
+									<f:selectItem itemValue="" itemLabel="Seleccione"></f:selectItem>
+									<f:selectItems
+										value="#{addInterviewController.educationLevels}"></f:selectItems>
+								</p:selectOneMenu>
+								<p:spacer width="4" height="1"></p:spacer>
+								<p:outputLabel value="Experiencia"></p:outputLabel>
+								<p:spacer width="18" height="1"></p:spacer>
+								<p:selectOneMenu style="width:80px;"
+									value="#{addInterviewController.interviewSelected.candidate.experience}"
+									required="true" requiredMessage="Debe ingresar: Experiencia.">
+									<f:selectItem itemValue="" itemLabel="Seleccione"></f:selectItem>
+									<f:selectItem itemValue="0 a 6 Meses" itemLabel="0 a 6 Meses"></f:selectItem>
+									<f:selectItem itemValue="6 a 12 Meses" itemLabel="6 a 12 Meses"></f:selectItem>
+									<f:selectItem itemValue="12 meses a mas"
+										itemLabel="12 meses a más"></f:selectItem>
+								</p:selectOneMenu>
+							</h:panelGroup>
+
+							<p:outputLabel value="Último trabajo"></p:outputLabel>
+							<p:inputText style="width: 300px;" required="true" 
+								requiredMessage="Debe ingresar último trabajo."
+								value="#{addInterviewController.interviewSelected.candidate.lastJob}"></p:inputText>
+
+							<p:outputLabel value="Tipo de ingreso"></p:outputLabel>
+							<p:selectOneMenu 
+								value="#{addInterviewController.interviewSelected.candidate.entryType}"
+								required="true"
+								requiredMessage="Debe ingresar: Tipo de ingreso.">
+								<f:selectItem itemValue="" itemLabel="Seleccione"></f:selectItem>
+								<f:selectItem itemValue="PRIMERA VEZ" itemLabel="PRIMERA VEZ"></f:selectItem>
+								<f:selectItem itemValue="REINGRESO" itemLabel="REINGRESO"></f:selectItem>
+								<f:selectItem itemValue="NO ADMITIDO" itemLabel="NO ADMITIDO"></f:selectItem>
+							</p:selectOneMenu>
+
+						</h:panelGrid>
+					</p:fieldset>
+					<p:fieldset legend="DATOS DE ENTREVISTA">
+					<h:panelGrid columns="2">
+
+
+
+					</h:panelGrid>
+					</p:fieldset>
+
+
+				</h:panelGrid>
+
+				<h:panelGrid style="margin:auto;text-align:center;">
+					<p:commandButton actionListener="#{addInterviewController.add}"
+						update="@form :messages" value="Agregar" >
+					</p:commandButton>
+				</h:panelGrid>
+			</h:panelGrid>
+		</h:form>
+	</ui:define>
+
+</ui:composition>
+</html>

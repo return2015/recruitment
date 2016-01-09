@@ -4,7 +4,7 @@ public enum UserTypeEnum {
 	
 	ADMIN((short)2,"Administrador"),
 	//SUPERVISOR((short)2,"Supervisor"),
-	AGENT((short)1,"Agente");
+	RECRUITER((short)1,"Reclutador");
 	
 	private Short id;
 	private String name;

@@ -7,7 +7,7 @@ import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 
 import com.returnsoft.recruitment.eao.RecruitmentSourceEao;
-import com.returnsoft.recruitment.entity.RecruimentSource;
+import com.returnsoft.recruitment.entity.RecruitmentSource;
 import com.returnsoft.recruitment.exception.ServiceException;
 import com.returnsoft.recruitment.service.RecruitmentSourceService;
 
@@ -23,9 +23,9 @@ public class RecruitmentSourceServiceImpl implements RecruitmentSourceService {
 
 
 	@Override
-	public List<RecruimentSource> findAll() throws ServiceException {
+	public List<RecruitmentSource> findAll() throws ServiceException {
 		try {
-			List<RecruimentSource> recruimentsSource = recruimentSourceEao
+			List<RecruitmentSource> recruimentsSource = recruimentSourceEao
 					.findAll();
 			
 			return recruimentsSource;
@@ -42,12 +42,12 @@ public class RecruitmentSourceServiceImpl implements RecruitmentSourceService {
 	
 	
 	@Override
-	public RecruimentSource findById(Integer recruimentSourceId)
+	public RecruitmentSource findById(Integer recruimentSourceId)
 			throws ServiceException {
 		
 		try {
 
-			RecruimentSource recruimentSource = recruimentSourceEao.findById(recruimentSourceId);
+			RecruitmentSource recruimentSource = recruimentSourceEao.findById(recruimentSourceId);
 			return recruimentSource;
 
 		} catch (Exception e) {

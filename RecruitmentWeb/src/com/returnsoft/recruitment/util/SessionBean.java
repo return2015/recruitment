@@ -1,13 +1,13 @@
-package com.returnsoft.recruitment.controller;
+package com.returnsoft.recruitment.util;
 
 import java.io.Serializable;
 
-import javax.faces.bean.ManagedBean;
-import javax.faces.bean.SessionScoped;
+import javax.enterprise.context.SessionScoped;
+import javax.inject.Named;
 
 import com.returnsoft.recruitment.entity.User;
 
-@ManagedBean
+@Named
 @SessionScoped
 public class SessionBean implements Serializable {
 
@@ -16,19 +16,11 @@ public class SessionBean implements Serializable {
 	 */
 	private static final long serialVersionUID = 1L;
 
-	//private Integer userId;
-	//private Integer recruiterId;
-	//private Integer trainerId;
 	private Boolean isAdmin;
-	//private String name;
-	//private String username;
 	
 	private User user;
 
 	
-
-	
-
 	public Boolean getIsAdmin() {
 		return isAdmin;
 	}

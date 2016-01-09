@@ -10,7 +10,9 @@
 
 <h:head>
 	<title><ui:insert name="title">Reclutamiento</ui:insert></title>
-	<h:outputStylesheet library="css" name="style.css" />
+	<h:outputStylesheet library="css" name="facesUtil.css" />
+	<ui:insert name="library">
+	</ui:insert>
 </h:head>
 
 <h:body>
@@ -23,6 +25,17 @@
 			<p:menuitem value="Inicio" outcome="/home.xhtml" icon="ui-icon-star" />
 			<p:menuitem value="Postulantes" outcome="/search_candidate.xhtml"
 				rendered="#{sessionBean.user!=null}" icon="ui-icon-star" />
+			<p:menuitem value="Entrevistas" outcome="/search_interview.xhtml"
+				rendered="#{sessionBean.user!=null}" icon="ui-icon-star" />	
+			<p:menuitem value="Requerimientos"
+				outcome="/search_requirement.xhtml"
+				rendered="#{sessionBean.user!=null}" icon="ui-icon-star" />
+			
+			<p:submenu label="Mantenimiento" icon="ui-icon-star" >
+				<p:menuitem value="Usuarios" outcome="/search_user.xhtml"
+					icon="ui-icon-star" />
+			</p:submenu>
+				
 			<p:menuitem value="Salir" action="#{loginController.doLogout}"
 				icon="ui-icon-star" />
 		</p:menubar>

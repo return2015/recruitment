@@ -36,8 +36,8 @@ public class Area implements Serializable{
 	private Area area;
 	
 	@ManyToOne
-	@JoinColumn(name="recruiter_id")
-	private User recruiter;
+	@JoinColumn(name="coordinator_id")
+	private User coordinator;
 
 	// bi-directional many-to-many association to Agent
 	@ManyToMany(mappedBy = "areas")
@@ -73,12 +73,14 @@ public class Area implements Serializable{
 		this.area = area;
 	}
 
-	public User getRecruiter() {
-		return recruiter;
+	
+
+	public User getCoordinator() {
+		return coordinator;
 	}
 
-	public void setRecruiter(User recruiter) {
-		this.recruiter = recruiter;
+	public void setCoordinator(User coordinator) {
+		this.coordinator = coordinator;
 	}
 
 	public List<User> getRecruiters() {

@@ -2,13 +2,16 @@ package com.returnsoft.recruitment.entity;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -24,9 +27,11 @@ public class Requirement implements Serializable{
 	
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	@Column(name="id")
 	private Integer id;
 	
 	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name="period")
 	private Date period;
 	
 	@Temporal(TemporalType.TIMESTAMP)
@@ -41,15 +46,15 @@ public class Requirement implements Serializable{
 	@Column(name="start_ojt")
 	private Date startOjt;
 	
+	@Column(name="amount")
 	private Integer amount;
 
-	// bi-directional many-to-one association to Department
 	@ManyToOne
+	@JoinColumn(name="area_id")
 	private Area area;
 	
-	@ManyToOne
-	private User recruiter;
-
+	@OneToMany(mappedBy="requirement")
+	 private List<RequirementUser> users;
 
 	public Integer getId() {
 		return id;
@@ -107,13 +112,15 @@ public class Requirement implements Serializable{
 		this.area = area;
 	}
 
-	public User getRecruiter() {
-		return recruiter;
+	public List<RequirementUser> getUsers() {
+		return users;
 	}
 
-	public void setRecruiter(User recruiter) {
-		this.recruiter = recruiter;
+	public void setUsers(List<RequirementUser> users) {
+		this.users = users;
 	}
+
+	
 
 
 

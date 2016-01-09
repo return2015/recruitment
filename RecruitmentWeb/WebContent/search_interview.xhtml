@@ -1,0 +1,190 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+
+<ui:composition template="/templates/BasicTemplate.xhtml">
+
+	<ui:define name="metadata">
+		<f:metadata>
+			<f:viewAction action="#{searchInterviewController.initialize}" />
+		</f:metadata>
+	</ui:define>
+
+
+
+	<ui:define name="content">
+
+		<div class="title ui-widget-header ui-corner-all">
+			<h:panelGrid style="margin:auto;">
+		GESTIONAR ENTREVISTAS
+		</h:panelGrid>
+
+		</div>
+
+		<h:panelGrid style="margin:auto;text-align:center;">
+			<p:messages id="messages"></p:messages>
+		</h:panelGrid>
+
+		<h:form id="form">
+			<h:panelGrid style="margin:auto;">
+
+
+				<h:panelGrid columns="6">
+					<p:outputLabel value="N° de documento"></p:outputLabel>
+					<p:inputText style="width: 180px;"
+						value="#{searchInterviewController.documentNumber}"></p:inputText>
+					<p:outputLabel value="Nombres"></p:outputLabel>
+					<p:inputText style="width: 180px;"
+						value="#{searchInterviewController.names}"></p:inputText>
+					<p:outputLabel value=""></p:outputLabel>
+					<p:outputLabel value=""></p:outputLabel>
+
+					<p:outputLabel value="Area"></p:outputLabel>
+					<p:selectOneMenu id="areas"
+						value="#{searchInterviewController.areaSelected}">
+						<f:selectItem itemValue="" itemLabel="Seleccione..."></f:selectItem>
+						<f:selectItem itemValue="t" itemLabel="Todos"></f:selectItem>
+						<f:selectItems value="#{searchInterviewController.areas}"></f:selectItems>
+						<p:ajax listener="#{searchInterviewController.searchSubAreas}"
+							update=":form:subAreas :messages"></p:ajax>
+					</p:selectOneMenu>
+
+					<p:outputLabel value="Subarea"></p:outputLabel>
+					<p:selectOneMenu id="subAreas"
+						value="#{searchInterviewController.subAreaSelected}">
+						<f:selectItem itemValue="" itemLabel="Seleccione..."></f:selectItem>
+						<f:selectItem itemValue="t" itemLabel="Todos"></f:selectItem>
+						<f:selectItems value="#{searchInterviewController.subAreas}"></f:selectItems>
+					</p:selectOneMenu>
+
+
+					<p:outputLabel value="Reclutador"></p:outputLabel>
+					<p:selectOneMenu id="recruitments"
+						value="#{searchInterviewController.recruiterSelected}">
+						<f:selectItem itemValue="" itemLabel="Seleccione..."></f:selectItem>
+						<f:selectItems value="#{searchInterviewController.recruiters}"></f:selectItems>
+					</p:selectOneMenu>
+
+					<p:outputLabel value="Fecha de entrevista"></p:outputLabel>
+					<p:calendar value="#{searchInterviewController.interviewedAt}"></p:calendar>
+
+					<p:outputLabel value="Fecha de creacion"></p:outputLabel>
+					<p:calendar value="#{searchInterviewController.createdAt}"></p:calendar>
+
+
+					<p:outputLabel value="Estado"></p:outputLabel>
+					<p:selectOneMenu id="states"
+						value="#{searchInterviewController.stateSelected}">
+						<f:selectItem itemValue="" itemLabel="Seleccione..."></f:selectItem>
+						<f:selectItems value="#{searchInterviewController.states}"></f:selectItems>
+					</p:selectOneMenu>
+
+				</h:panelGrid>
+
+				<h:panelGrid style="margin:auto;text-align:center;" columns="3">
+					<p:commandButton icon="ui-icon-search"
+						actionListener="#{searchInterviewController.search}"
+						value="Buscar" process="@form"
+						update=":form:searchTable :messages :form:interviewId :form:editButtom">
+					</p:commandButton>
+
+				</h:panelGrid>
+			</h:panelGrid>
+
+			<h:panelGrid columns="3">
+			
+			<p:commandButton icon="ui-icon-plus" value="Agregar Entrevista"
+					action="add_interview?faces-redirect=true">
+				</p:commandButton>
+
+				<p:commandButton id="editButtom" action="edit_interview.xhtml"
+					icon="ui-icon-pencil" value="Editar"
+					disabled="#{searchInterviewController.interviewSelected==null}">
+					<f:param name="interviewId"
+						value="#{searchInterviewController.interviewSelected.id}"></f:param>
+				</p:commandButton>
+				<p:outputLabel id="interviewId"
+					value="Entrevista seleccionada: #{searchInterviewController.interviewSelected!=null?searchInterviewController.interviewSelected.id:''}">
+				</p:outputLabel>
+			</h:panelGrid>
+
+			<p:dataTable value="#{searchInterviewController.interviews}" var="i"
+				paginator="true" rows="10" id="searchTable" style="width:100%;"
+				selectionMode="single" lazy="true"
+				paginatorTemplate="{FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink}"
+				currentPageReportTemplate="(Entries: {startRecord} - {endRecord} of {totalRecords}, Page: {currentPage}/{totalPages})"
+				selection="#{searchInterviewController.interviewSelected}">
+
+				<p:ajax event="rowSelect"
+					update=":form:interviewId :form:editButtom" />
+				<p:ajax event="rowUnselect"
+					update=":form:interviewId :form:editButtom" />
+
+				<p:column headerText="ID" sortBy="#{i.id}">
+					<h:outputText value="#{i.id}"></h:outputText>
+				</p:column>
+
+				<p:column headerText="N° de documento"
+					sortBy="#{i.candidate.documentNumber}">
+					<h:outputText value="#{i.candidate.documentNumber}"></h:outputText>
+				</p:column>
+
+				<p:column headerText="Nombres" sortBy="#{i.candidate.firstname}">
+					<h:outputText value="#{i.candidate.firstname}"></h:outputText>
+				</p:column>
+
+				<p:column headerText="Apellidos" sortBy="#{i.candidate.lastname}">
+					<h:outputText value="#{i.candidate.lastname}"></h:outputText>
+				</p:column>
+
+				<p:column headerText="Area" sortBy="#{i.requirement.area.area.name}">
+					<h:outputText value="#{i.requirement.area.area.name}"></h:outputText>
+				</p:column>
+
+				<p:column headerText="Subarea" sortBy="#{i.requirement.area.name}">
+					<h:outputText value="#{i.requirement.area.name}"></h:outputText>
+				</p:column>
+
+				<p:column headerText="Estado" sortBy="#{i.interviewState.name}">
+					<h:outputText value="#{i.interviewState.name}"></h:outputText>
+				</p:column>
+
+				<p:column headerText="Entrevista" width="120"
+					sortBy="#{i.interviewedAt}">
+					<h:outputText value="#{i.interviewedAt}">
+						<f:convertDateTime pattern="dd-MM-yyyy hh:mm:ss a" />
+					</h:outputText>
+				</p:column>
+
+				<p:column headerText="Comentarios" sortBy="#{i.comment}">
+					<h:outputText value="#{i.comment}"></h:outputText>
+				</p:column>
+
+				<p:column headerText="Fecha creacion" width="120"
+					sortBy="#{i.createdAt}">
+					<h:outputText value="#{i.createdAt}">
+						<f:convertDateTime pattern="dd-MM-yyyy hh:mm:ss a" />
+					</h:outputText>
+				</p:column>
+
+				<p:column headerText="Reclutador"
+					sortBy="#{i.user.firstname} #{i.user.lastname}">
+					<h:outputText value="#{i.user.firstname} #{i.user.lastname}"></h:outputText>
+				</p:column>
+
+
+
+
+			</p:dataTable>
+
+
+		</h:form>
+	</ui:define>
+
+</ui:composition>
+</html>

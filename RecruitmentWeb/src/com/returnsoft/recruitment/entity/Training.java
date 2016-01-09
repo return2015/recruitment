@@ -18,7 +18,7 @@ public class Training implements Serializable {
 
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	private Integer id;
+	private Long id;
 
 	private String comment;
 	
@@ -44,6 +44,11 @@ public class Training implements Serializable {
 	@Column(name="training_at")
 	private Date trainingAt;
 	
+	@OneToOne(cascade = CascadeType.ALL, optional = false, fetch = FetchType.EAGER, orphanRemoval = true)
+	@PrimaryKeyJoinColumn
+	private Ojt ojt;
+	
+	
 	/*@ManyToOne
 	private Recruiter recruiter;*/
 	
@@ -51,13 +56,19 @@ public class Training implements Serializable {
 	public Training() {
 	}
 
-	public Integer getId() {
-		return this.id;
+	
+
+	public Long getId() {
+		return id;
 	}
 
-	public void setId(Integer id) {
+
+
+	public void setId(Long id) {
 		this.id = id;
 	}
+
+
 
 	public String getComment() {
 		return this.comment;
@@ -108,6 +119,14 @@ public class Training implements Serializable {
 
 	public void setTrainer(User trainer) {
 		this.trainer = trainer;
+	}
+
+	public Ojt getOjt() {
+		return ojt;
+	}
+
+	public void setOjt(Ojt ojt) {
+		this.ojt = ojt;
 	}
 
 	

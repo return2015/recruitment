@@ -17,6 +17,47 @@ public class UserEao{
 	
 	@PersistenceContext
 	private EntityManager em;
+	
+	public void add(User user) throws EaoException {
+		try {
+			
+			em.persist(user);
+			em.flush();
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new EaoException(e.getMessage());
+		}
+
+	}
+	
+	
+	public User edit(User user) throws EaoException {
+		try {
+			
+			user = em.merge(user);
+			em.flush();
+			
+			return user;
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new EaoException(e.getMessage());
+		}
+
+	}
+	
+	public User findById(Integer userId) throws EaoException {
+		try {
+			User user = em.find(User.class, userId);
+			
+			return user;
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new EaoException(e.getMessage());
+		}
+	}
 
 	public User findByPersonId(Integer personId) throws EaoException {
 		try {
@@ -92,6 +133,41 @@ public class UserEao{
 			throw new EaoException(e.getMessage());
 		}
 		
+	}
+	
+	public List<User> findList(String username, String names) throws EaoException {
+		try {
+			
+			String query = 
+					"SELECT u FROM User u WHERE u.id>0 ";
+			
+			if (username!=null && username.length()>0) {
+				query+=" and u.username=:username";
+			}
+			
+			if (names!=null && names.length()>0) {
+				query+=" and (u.firstname like :names or u.lastname like :names) ";
+			}
+			
+			TypedQuery<User> q = em.createQuery(
+					query, User.class);
+			if (username!=null && username.length()>0) {
+				q.setParameter("username", username);
+			}
+			
+			if (names!=null && names.length()>0) {
+				q.setParameter("names", "%"+names+"%");
+			}
+			
+			List<User> users = q.getResultList();
+
+			return users;
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new EaoException(e.getMessage());
+		}
 	}
 
 

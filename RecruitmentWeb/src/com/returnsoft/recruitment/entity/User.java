@@ -2,7 +2,6 @@ package com.returnsoft.recruitment.entity;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.Set;
 
 import javax.persistence.Column;
 import javax.persistence.Convert;
@@ -13,6 +12,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import com.returnsoft.recruitment.converter.UserTypeConverter;
@@ -45,10 +45,7 @@ public class User implements
 	
 	@Column(name = "lastname")
 	private String lastname;
-	
-	@Column(name = "document_number")
-	private String documentNumber;
-	
+		
 	@Column(name = "is_active")
 	private Boolean isActive;
 	
@@ -59,6 +56,9 @@ public class User implements
 	@Column(name = "type_id")
 	@Convert(converter = UserTypeConverter.class)
 	private UserTypeEnum userType;
+	
+	@OneToMany(mappedBy="user")
+	private List<RequirementUser> requirements;
 	
 	
 	
@@ -113,13 +113,6 @@ public class User implements
 		this.lastname = lastname;
 	}
 
-	public String getDocumentNumber() {
-		return documentNumber;
-	}
-
-	public void setDocumentNumber(String documentNumber) {
-		this.documentNumber = documentNumber;
-	}
 
 	
 
@@ -137,6 +130,14 @@ public class User implements
 
 	public void setUserType(UserTypeEnum userType) {
 		this.userType = userType;
+	}
+
+	public List<RequirementUser> getRequirements() {
+		return requirements;
+	}
+
+	public void setRequirements(List<RequirementUser> requirements) {
+		this.requirements = requirements;
 	}
 
 

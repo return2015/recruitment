@@ -1,12 +1,13 @@
 package com.returnsoft.recruitment.service.impl;
 
+import java.util.Date;
 import java.util.List;
 
 import javax.ejb.EJB;
-import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 
 import com.returnsoft.recruitment.eao.CandidateEao;
+import com.returnsoft.recruitment.eao.InterviewEao;
 import com.returnsoft.recruitment.entity.Candidate;
 import com.returnsoft.recruitment.exception.ServiceException;
 import com.returnsoft.recruitment.service.CandidateService;
@@ -20,6 +21,9 @@ public class CandidateServiceImpl implements CandidateService {
 
 	@EJB
 	private CandidateEao candidateEao;
+	
+	@EJB
+	private InterviewEao interviewEao;
 
 	/**
 	 * Default constructor.
@@ -29,16 +33,16 @@ public class CandidateServiceImpl implements CandidateService {
 	}
 
 	@Override
-	public List<Candidate> findList(List<Integer> areasId,
-			List<Integer> subAreasId, Integer recruiterId,  Integer interviewStateId,
+	public List<Candidate> findListLimit(List<Integer> areasId,
+			List<Integer> subAreasId, Integer interviewStateId,
 			Integer trainingStateId,Integer ojtStateId, 
-			String scheduledAtFormatted, String createdAtFormatted, String documentNumber,
-			String name) throws ServiceException {
+			Date scheduledAt, Date createdAt, String documentNumber,
+			String name, Integer first, Integer limit) throws ServiceException {
 		try {
 
-			List<Candidate> candidates = candidateEao.findList(
-					areasId, subAreasId, recruiterId,interviewStateId,trainingStateId,ojtStateId,
-					scheduledAtFormatted,createdAtFormatted, documentNumber, name);
+			List<Candidate> candidates = candidateEao.findListLimit(
+					areasId, subAreasId, interviewStateId,trainingStateId,ojtStateId,
+					scheduledAt,createdAt, documentNumber, name, first, limit);
 
 			return candidates;
 		} catch (Exception e) {
@@ -50,34 +54,68 @@ public class CandidateServiceImpl implements CandidateService {
 			}
 		}
 	}
+	
+	@Override
+	public Integer findListCount(List<Integer> areasId,
+			List<Integer> subAreasId, Integer interviewStateId,
+			Integer trainingStateId,Integer ojtStateId, 
+			Date scheduledAt, Date createdAt, String documentNumber,
+			String name) throws ServiceException {
+		try {
+
+			Integer candidatesCount = candidateEao.findListCount(
+					areasId, subAreasId, interviewStateId,trainingStateId,ojtStateId,
+					scheduledAt,createdAt, documentNumber, name);
+
+			return candidatesCount;
+		} catch (Exception e) {
+			e.printStackTrace();
+			if (e.getMessage()!=null && e.getMessage().trim().length()>0) {
+				throw new ServiceException(e.getMessage(), e);	
+			}else{
+				throw new ServiceException();
+			}
+		}
+	}
 
 	@Override
-	public Candidate add(Candidate newCandidate)
+	public void add(Candidate candidate)
 			throws ServiceException {
 		try {
 			//System.out.println();
-			Candidate candidateFound = candidateEao.findByDocumentNumber(newCandidate.getDocumentNumber());
+			Candidate candidateFound = candidateEao.findByDocumentNumber(candidate.getDocumentNumber());
 			
-			if (candidateFound==null || candidateFound.getId()==0) {
-				//Candidate createdCandidate = conv.toCandidate(newCandidate);
-				candidateEao.add(newCandidate);
-				/*CandidateDto createdCandidateDto = conv
-						.fromCandidate(createdCandidate);*/
-				return newCandidate;
+			if (candidateFound==null) {
+				//se agrega entrevista
+//				if (candidate.getInterview()!=null) {
+//					// SE CREA CANDIDATO
+//					System.out.println("Se crea el candidato");
+//					Interview interview = candidate.getInterview();
+//					candidate.setInterview(null);
+//					candidateEao.add(candidate);
+//					
+//					//SE CREA ENTREVISTA
+//					System.out.println("Se crea la entrevista");
+//					interview.setCandidate(candidate);
+//					interviewEao.add(interview);
+//					
+//					
+//					//SEASIGNA ENTREVISTA A CANDIDATO
+//					System.out.println("Se asigna entrevista");
+//					candidate.setInterview(interview);
+//					candidateEao.update(candidate);
+					
+					
+					
+				//}else{
+					System.out.println("Solo se crea el candidato");
+					candidateEao.add(candidate);
+				//}
+				
 			}else{
-				
-				/*for (CandidateDto candidateDto : candidateFound) {
-					System.out.println(candidateDto.getArea().getName());
-					System.out.println(candidateDto.getArea().getArea().getName());
-				}*/
-				
-				throw new ServiceException("El postulante con DNI "+newCandidate.getDocumentNumber()+" ya existe en el área "+candidateFound.getArea().getArea().getName(),new ServiceException());
+				throw new ServiceException("El postulante con DNI "+candidate.getDocumentNumber()+" ya existe.",new ServiceException());
 			}
 			
-			
-
-			
-
 		} catch (Exception e) {
 			e.printStackTrace();
 			if (e.getMessage()!=null && e.getMessage().trim().length()>0) {
@@ -119,7 +157,7 @@ public class CandidateServiceImpl implements CandidateService {
 						return newCandidate;
 					}else{
 						//mensaje: ya existe el postulante
-						throw new ServiceException("El postulante con DNI "+newCandidate.getDocumentNumber()+" ya existe en el área "+candidateTarget.getArea().getArea().getName(),new ServiceException());
+						throw new ServiceException("El postulante con DNI "+newCandidate.getDocumentNumber()+" ya existe.",new ServiceException());
 					}
 				}
 			}else{
@@ -162,7 +200,7 @@ public class CandidateServiceImpl implements CandidateService {
 	}
 
 	@Override
-	public Candidate findById(Integer candidateId)
+	public Candidate findById(Long candidateId)
 			throws ServiceException {
 		try {
 			Candidate candidate = candidateEao.findById(candidateId);
@@ -177,7 +215,7 @@ public class CandidateServiceImpl implements CandidateService {
 		}
 	}
 
-	@Override
+	/*@Override
 	public List<Candidate> findByDocumentNumberList(String documentNumber)
 			throws ServiceException {
 		try {
@@ -193,7 +231,7 @@ public class CandidateServiceImpl implements CandidateService {
 				throw new ServiceException();
 			}
 		}
-	}
+	}*/
 	
 	@Override
 	public Candidate findByDocumentNumber(String documentNumber)

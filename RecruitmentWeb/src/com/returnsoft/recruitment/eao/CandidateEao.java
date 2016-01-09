@@ -25,7 +25,7 @@ public class CandidateEao {
 	@PersistenceContext
 	private EntityManager em;
 	
-	public Candidate findById(Integer candidateId) throws EaoException {
+	public Candidate findById(Long candidateId) throws EaoException {
 		try {
 			Candidate candidate = em.find(Candidate.class, candidateId);
 			
@@ -284,16 +284,15 @@ public class CandidateEao {
 	}
 	
 
-	@SuppressWarnings("unchecked")
-	public List<Candidate> findList(List<Integer> areasId,
+	/*@SuppressWarnings("unchecked")
+	public List<Candidate> findListLimit(List<Integer> areasId,
 			List<Integer> subAreasId, Integer recruiterId, Integer interviewStateId,
 			Integer trainingStateId,Integer ojtStateId,
 			String scheduledAtFormatter, String createdAtFormatter,
 			String documentNumber,
-			String name) throws EaoException {
+			String name, Integer first, Integer limit ) throws EaoException {
 
 		try {
-			
 			
 
 			String query = "SELECT c.id,c.document_number,c.firstname,"
@@ -390,12 +389,12 @@ public class CandidateEao {
 
 			Query q = em.createNativeQuery(query);
 
-			/*
-			 * if (areasId != null && areasId.size() > 0) {
-			 * q.setParameter("areasId", areasId); if (subAreasId != null &&
-			 * subAreasId.size() > 0) { q.setParameter("subAreasId",
-			 * subAreasId); } }
-			 */
+			
+//			  if (areasId != null && areasId.size() > 0) {
+//			  q.setParameter("areasId", areasId); if (subAreasId != null &&
+//			  subAreasId.size() > 0) { q.setParameter("subAreasId",
+//			  subAreasId); } }
+			 
 
 			List<Object[]> candidateObjectList = (List<Object[]>) q
 					.getResultList();
@@ -433,12 +432,12 @@ public class CandidateEao {
 					candidate.setLastname(candidateLastname);
 					candidate.setScheduledAt(candidateScheduledAt);
 					candidate.setCreatedAt(candidateCreatedAt);
-					/*candidate.setInterviewedAt(candidateInterviewedAt);
-					candidate.setInterviewStateName(candidateInterviewedState);
-					candidate.setTrainingAt(candidateTrainingAt);
-					candidate.setTrainingStateName(candidateTrainingState);
-					candidate.setOjtAt(candidateOjtAt);
-					candidate.setOjtStateName(candidateOjtState);*/
+//					candidate.setInterviewedAt(candidateInterviewedAt);
+//					candidate.setInterviewStateName(candidateInterviewedState);
+//					candidate.setTrainingAt(candidateTrainingAt);
+//					candidate.setTrainingStateName(candidateTrainingState);
+//					candidate.setOjtAt(candidateOjtAt);
+//					candidate.setOjtStateName(candidateOjtState);
 					
 					if (candidateAreaId != null) {
 						Area area = new Area();
@@ -458,7 +457,7 @@ public class CandidateEao {
 						recruiter.setId(candidateRecruiterId);
 						recruiter.setFirstname(recruiterFirstname);
 						recruiter.setLastname(recruiterLastname);
-						candidate.setRecruiter(recruiter);
+						candidate.setCreatedBy(recruiter);
 					}
 					candidates.add(candidate);
 
@@ -467,6 +466,252 @@ public class CandidateEao {
 			return candidates;
 		} catch (NoResultException e) {
 			return null;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new EaoException(e.getMessage());
+		}
+	}*/
+	
+	
+	public List<Candidate> findListLimit(List<Integer> areasId,
+			List<Integer> subAreasId, Integer interviewStateId,
+			Integer trainingStateId,Integer ojtStateId,
+			Date scheduledAt, Date createdAt,
+			String documentNumber,
+			String name, Integer first, Integer limit ) throws EaoException {
+
+		try {
+			
+
+			String query = "SELECT c "
+					+ "FROM Candidate c "
+					+ "left join c.interview i " 
+					+ "left join i.interviewState ins "
+					+ "left join i.requirement r "
+					+ "left join r.area a "
+					+ "left join a.area ap "
+					
+					+ "left join i.training tr "
+					+ "left join tr.trainingState trs "
+					+ "left join tr.ojt oj "
+					+ "left join oj.ojtState ojs "
+					+ "WHERE c.id>0 ";
+					/*+ "and (i.id=(select max(id) from interview where candidate_id=c.id) "
+					+ "or (select max(id) from interview where candidate_id=c.id) is null) ";*/
+
+			if (scheduledAt != null ) {
+				query += " and c.scheduledAt = :scheduledAt ";
+			}
+			
+			if (createdAt != null) {
+				query += " and c.createdAt = :createdAt";
+			}
+
+			if (interviewStateId != null && interviewStateId > 0) {
+				query += " and ins.id =:interviewStateId ";
+			}
+			
+			if (trainingStateId != null && trainingStateId > 0) {
+				query += " and trs.id =:trainingStateId ";
+			}
+			
+			if (ojtStateId != null && ojtStateId > 0) {
+				query += " and ojs.id =:ojtStateId ";
+			}
+
+			if (areasId != null && areasId.size() > 0) {
+				query += " and ap.id in :areasId ";
+				
+			} 
+			 
+			if (subAreasId != null && subAreasId.size() > 0) {
+				query += " and a.id in :subAreasId ";
+			} 
+
+			if (documentNumber != null && !documentNumber.trim().equals("")) {
+				query += " and c.document_number like :documentNumber";
+			}
+
+			if (name != null && name.trim().length()>0) {
+				query += " and (c.firstname like :name or c.lastname like :name)";
+			}
+
+			query += " group by c.id order by c.id desc";
+
+			TypedQuery<Candidate> q = em.createQuery(query,Candidate.class);
+			
+			if (scheduledAt != null ) {
+				q.setParameter("scheduledAt", scheduledAt);
+			}
+			
+			if (createdAt != null) {
+				q.setParameter("createdAt", createdAt);
+			}
+
+			if (interviewStateId != null && interviewStateId > 0) {
+				q.setParameter("interviewStateId", interviewStateId);
+			}
+			
+			if (trainingStateId != null && trainingStateId > 0) {
+				q.setParameter("trainingStateId", trainingStateId);
+			}
+			
+			if (ojtStateId != null && ojtStateId > 0) {
+				q.setParameter("ojtStateId", ojtStateId);
+			}
+
+			if (areasId != null && areasId.size() > 0) {
+				q.setParameter("areasId", areasId);
+				
+			} 
+			 
+			if (subAreasId != null && subAreasId.size() > 0) {
+				q.setParameter("subAreasId", subAreasId);
+			} 
+
+			if (documentNumber != null && !documentNumber.trim().equals("")) {
+				q.setParameter("documentNumber", documentNumber);
+			}
+
+			if (name != null && name.trim().length()>0) {
+				q.setParameter("name", name);
+			}
+			
+
+			
+//			  if (areasId != null && areasId.size() > 0) {
+//			  q.setParameter("areasId", areasId); if (subAreasId != null &&
+//			  subAreasId.size() > 0) { q.setParameter("subAreasId",
+//			  subAreasId); } }
+			
+			q.setFirstResult(first);
+			q.setMaxResults(limit);
+			
+			q.getResultList();
+			 
+
+			List<Candidate> candidates = q.getResultList();
+			
+			return candidates;
+		} catch (NoResultException e) {
+			return null;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new EaoException(e.getMessage());
+		}
+	}
+	public Integer findListCount(List<Integer> areasId,
+			List<Integer> subAreasId, Integer interviewStateId,
+			Integer trainingStateId,Integer ojtStateId,
+			Date scheduledAt, Date createdAt,
+			String documentNumber,
+			String name ) throws EaoException {
+
+		try {
+			
+
+			String query = "SELECT count(c.id) "
+					+ "FROM Candidate c "
+					+ "left join c.interview i " 
+					+ "left join i.interviewState ins "
+					+ "left join i.requirement r "
+					+ "left join r.area a "
+					+ "left join a.area ap "
+					+ "left join i.training tr "
+					+ "left join tr.trainingState trs "
+					+ "left join tr.ojt oj "
+					+ "left join oj.ojtState ojs "
+					+ "WHERE c.id>0 ";
+					/*+ "and (i.id=(select max(id) from interview where candidate_id=c.id) "
+					+ "or (select max(id) from interview where candidate_id=c.id) is null) ";*/
+
+			if (scheduledAt != null ) {
+				query += " and c.scheduledAt = :scheduledAt ";
+			}
+			
+			if (createdAt != null) {
+				query += " and c.createdAt = :createdAt";
+			}
+
+			if (interviewStateId != null && interviewStateId > 0) {
+				query += " and ins.id =:interviewStateId ";
+			}
+			
+			if (trainingStateId != null && trainingStateId > 0) {
+				query += " and trs.id =:trainingStateId ";
+			}
+			
+			if (ojtStateId != null && ojtStateId > 0) {
+				query += " and ojs.id =:ojtStateId ";
+			}
+
+			if (areasId != null && areasId.size() > 0) {
+				query += " and ap.id in :areasId ";
+				
+			} 
+			 
+			if (subAreasId != null && subAreasId.size() > 0) {
+				query += " and a.id in :subAreasId ";
+			} 
+
+			if (documentNumber != null && !documentNumber.trim().equals("")) {
+				query += " and c.document_number like :documentNumber";
+			}
+
+			if (name != null && name.trim().length()>0) {
+				query += " and (c.firstname like :name or c.lastname like :name)";
+			}
+
+			query += " group by c.id order by c.id desc";
+
+			Query q = em.createQuery(query);
+			
+			if (scheduledAt != null ) {
+				q.setParameter("scheduledAt", scheduledAt);
+			}
+			
+			if (createdAt != null) {
+				q.setParameter("createdAt", createdAt);
+			}
+
+			if (interviewStateId != null && interviewStateId > 0) {
+				q.setParameter("interviewStateId", interviewStateId);
+			}
+			
+			if (trainingStateId != null && trainingStateId > 0) {
+				q.setParameter("trainingStateId", trainingStateId);
+			}
+			
+			if (ojtStateId != null && ojtStateId > 0) {
+				q.setParameter("ojtStateId", ojtStateId);
+			}
+
+			if (areasId != null && areasId.size() > 0) {
+				q.setParameter("areasId", areasId);
+				
+			} 
+			 
+			if (subAreasId != null && subAreasId.size() > 0) {
+				q.setParameter("subAreasId", subAreasId);
+			} 
+
+			if (documentNumber != null && !documentNumber.trim().equals("")) {
+				q.setParameter("documentNumber", documentNumber);
+			}
+
+			if (name != null && name.trim().length()>0) {
+				q.setParameter("name", name);
+			}
+			
+
+			
+			Long candidatesCount = (Long)q.getSingleResult();
+			 
+			
+			return candidatesCount.intValue();
+			
+		} catch (NoResultException e) {
+			return 0;
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new EaoException(e.getMessage());

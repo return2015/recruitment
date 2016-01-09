@@ -16,12 +16,15 @@ public class Ojt implements Serializable {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Integer id;
+	private Long id;
 
 	private String comment;
 
 	@ManyToOne
 	private Training training;
+	
+	
+	
 
 	// bi-directional many-to-one association to OjtState
 	@ManyToOne
@@ -48,13 +51,19 @@ public class Ojt implements Serializable {
 	public Ojt() {
 	}
 
-	public Integer getId() {
-		return this.id;
+	
+
+	public Long getId() {
+		return id;
 	}
 
-	public void setId(Integer id) {
+
+
+	public void setId(Long id) {
 		this.id = id;
 	}
+
+
 
 	public String getComment() {
 		return this.comment;

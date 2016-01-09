@@ -15,9 +15,9 @@ import javax.persistence.Table;
  * 
  */
 @Entity
-@Table(name="recruiment_source")
+@Table(name="recruitment_source")
 //@NamedQuery(name="RecruimentSource.findAll", query="SELECT r FROM RecruimentSource r")
-public class RecruimentSource implements Serializable {
+public class RecruitmentSource implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
@@ -36,7 +36,7 @@ public class RecruimentSource implements Serializable {
 	private Boolean isReferred;
 
 
-	public RecruimentSource() {
+	public RecruitmentSource() {
 	}
 
 	public Integer getId() {

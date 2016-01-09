@@ -25,13 +25,17 @@
 
 		</div>
 
-		<h:form id="formSearch">
+
+		<h:panelGrid style="margin:auto;text-align:center;">
+			<p:messages id="messages"></p:messages>
+		</h:panelGrid>
+
+
+		<h:form id="form">
 
 			<h:panelGrid style="margin:auto;">
 
-				<h:panelGrid style="margin:auto;text-align:center;">
-					<p:messages id="messages"></p:messages>
-				</h:panelGrid>
+
 
 				<h:panelGrid columns="6">
 					<p:outputLabel value="N° de documento"></p:outputLabel>
@@ -62,7 +66,7 @@
 						<f:selectItem itemValue="t" itemLabel="Todos"></f:selectItem>
 						<f:selectItems value="#{searchCandidateController.areas}"></f:selectItems>
 						<p:ajax listener="#{searchCandidateController.searchSubAreas}"
-							update=":formSearch:subAreas :formSearch:messages"></p:ajax>
+							update=":form:subAreas :messages"></p:ajax>
 					</p:selectOneMenu>
 
 					<p:outputLabel value="Subarea"></p:outputLabel>
@@ -112,37 +116,55 @@
 					<p:commandButton icon="ui-icon-search"
 						actionListener="#{searchCandidateController.search}"
 						value="Buscar" process="@form"
-						update=":formSearch:searchTable :formSearch:messages :formSearch:candidateId :formSearch:editButtom">
+						update=":form:searchTable :messages :form:candidateId :form:editButtom">
 					</p:commandButton>
 				</h:panelGrid>
 
 			</h:panelGrid>
 
-			<h:panelGrid columns="3">
-				<p:commandButton icon="ui-icon-plus" value="Agregar"
+			<h:panelGrid columns="4">
+			
+				<p:commandButton icon="ui-icon-plus" value="Agregar Postulante"
 					action="add_candidate?faces-redirect=true">
 				</p:commandButton>
 
-				<p:commandButton id="editButtom" action="edit_candidate.xhtml"
-					icon="ui-icon-pencil" value="Editar" escape="false" ajax="false">
-					<f:param name="candidateId"
-						value="#{searchCandidateController.candidateSelected.id}"></f:param>
-				</p:commandButton>
 				<p:outputLabel id="candidateId"
 					value="Postulante seleccionado: #{searchCandidateController.candidateSelected!=null?searchCandidateController.candidateSelected.id:''}">
 				</p:outputLabel>
+				
+				<p:commandButton id="editButtom" action="edit_candidate.xhtml"
+					icon="ui-icon-pencil" value="Editar Postulante" escape="false" ajax="false"
+					disabled="#{searchCandidateController.candidateSelected==null}">
+					<f:param name="candidateId"
+						value="#{searchCandidateController.candidateSelected.id}"></f:param>
+				</p:commandButton>
+				
+				<p:commandButton id="interviewsButtom"
+					actionListener="#{searchCandidateController.showInterviews}"
+					icon="ui-icon-search" value="Ver entrevistas"
+					oncomplete="PF('interviewsDialog').show()"
+					update=":formInterview:interviewsDetail"
+					disabled="#{searchCandidateController.candidateSelected==null}">
+				</p:commandButton>
+				
+				
+				
+				
+				
 			</h:panelGrid>
 
 
 			<p:dataTable value="#{searchCandidateController.candidates}" var="c"
-				rowKey="#{c.id}" paginator="true" rows="10" id="searchTable"
-				selectionMode="single"
+				paginator="true" rows="10" id="searchTable" style="width:100%;"
+				selectionMode="single" lazy="true"
+				paginatorTemplate="{FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink}"
+				currentPageReportTemplate="(Entries: {startRecord} - {endRecord} of {totalRecords}, Page: {currentPage}/{totalPages})"
 				selection="#{searchCandidateController.candidateSelected}">
 
 				<p:ajax event="rowSelect"
-					update=":formSearch:candidateId :formSearch:editButtom" />
+					update=":form:candidateId :form:editButtom :form:interviewsButtom" />
 				<p:ajax event="rowUnselect"
-					update=":formSearch:candidateId :formSearch:editButtom" />
+					update=":form:candidateId :form:editButtom :form:interviewsButtom" />
 
 				<p:column headerText="ID" sortBy="#{c.id}">
 					<h:outputText value="#{c.id}"></h:outputText>
@@ -160,29 +182,34 @@
 					<h:outputText value="#{c.lastname}"></h:outputText>
 				</p:column>
 
-				<p:column headerText="Area" sortBy="#{c.area.area.name}">
-					<h:outputText value="#{c.area.area.name}"></h:outputText>
+				<p:column headerText="Entrevista"
+					sortBy="#{c.interview.interviewState.name}">
+					<h:outputText value="#{c.interview.interviewState.name} "></h:outputText>
 				</p:column>
 
-				<p:column headerText="Subarea" sortBy="#{c.area.name}">
-					<h:outputText value="#{c.area.name}"></h:outputText>
+				<p:column headerText="Area"
+					sortBy="#{c.interview.requirement.area.area.name}">
+					<h:outputText value="#{c.interview.requirement.area.area.name}"></h:outputText>
 				</p:column>
 
-				<p:column headerText="Entrevista" sortBy="#{c.interviewStateName}">
-					<h:outputText value="#{c.interviewStateName} "></h:outputText>
+				<p:column headerText="Subarea"
+					sortBy="#{c.interview.requirement.area.name}">
+					<h:outputText value="#{c.interview.requirement.area.name}"></h:outputText>
 				</p:column>
 
-				<p:column headerText="Capacitacion" sortBy="#{c.trainingStateName}">
-					<h:outputText value="#{c.trainingStateName}"></h:outputText>
+				<p:column headerText="Capacitacion"
+					sortBy="#{c.interview.training.trainingState.name}">
+					<h:outputText value="#{c.interview.training.trainingState.name}"></h:outputText>
 				</p:column>
 
-				<p:column headerText="Ojt" sortBy="#{c.ojtStateName}">
-					<h:outputText value="#{c.ojtStateName}"></h:outputText>
+				<p:column headerText="Ojt"
+					sortBy="#{c.interview.training.ojt.ojtState.name}">
+					<h:outputText value="#{c.interview.training.ojt.ojtState.name}"></h:outputText>
 				</p:column>
 
-				<p:column headerText="Agendado" sortBy="#{c.scheduledAt}"
+				<p:column headerText="Agendado" sortBy="#{c.interview.scheduledAt}"
 					width="120">
-					<h:outputText value="#{c.scheduledAt}">
+					<h:outputText value="#{c.interview.scheduledAt}">
 						<f:convertDateTime pattern="dd-MM-yyyy hh:mm:ss a" />
 					</h:outputText>
 				</p:column>
@@ -195,17 +222,57 @@
 				</p:column>
 
 
-				<p:column headerText="Reclutador"
-					sortBy="#{c.recruiter.firstname} #{c.recruiter.lastname}">
-					<h:outputText
-						value="#{c.recruiter.firstname} #{c.recruiter.lastname}">
-					</h:outputText>
-				</p:column>
-
 			</p:dataTable>
 
 
 		</h:form>
+		
+		
+		
+		
+		<p:dialog header="Entrevistas" widgetVar="interviewsDialog"
+			showEffect="fade" hideEffect="fade" width="800" height="200">
+			<h:form id="formInterview">
+				<p:outputPanel id="interviewsDetail" style="text-align:center;">
+
+					<h:panelGrid style="margin:auto;">
+
+						<p:dataTable
+							value="#{searchCandidateController.interviews}"
+							var="n" paginator="true" rows="5" id="interviewsTable">
+
+							<p:column headerText="Estado" width="100">
+								<h:outputText value="#{n.interviewState.name}"></h:outputText>
+							</p:column>
+
+							<p:column headerText="Fecha entrevista" width="80">
+								<h:outputText value="#{n.interviewedAt}">
+									<f:convertDateTime pattern="dd/MM/yyyy " />
+								</h:outputText>
+							</p:column>
+
+							<p:column headerText="Observaciones" width="80">
+								<h:outputText value="#{n.comment}">
+								</h:outputText>
+							</p:column>
+
+							<p:column headerText="Fecha creación" width="80">
+								<h:outputText value="#{n.createdAt}">
+									<f:convertDateTime pattern="dd/MM/yyyy hh:mm:ss a" />
+								</h:outputText>
+							</p:column>
+
+							<p:column headerText="Usuario creación" width="80">
+								<h:outputText value="#{n.createdBy.username}"></h:outputText>
+							</p:column>
+
+						</p:dataTable>
+
+					</h:panelGrid>
+				</p:outputPanel>
+			</h:form>
+		</p:dialog>
+		
 	</ui:define>
 
 </ui:composition>

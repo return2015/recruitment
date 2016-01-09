@@ -24,12 +24,15 @@
 		</h:panelGrid>
 
 		</div>
-		<h:form id="formAdd">
-			<h:panelGrid style="margin:auto;">
-
-				<h:panelGrid style="margin:auto;text-align:center;">
+		
+		<h:panelGrid style="margin:auto;text-align:center;">
 					<p:messages id="messages"></p:messages>
 				</h:panelGrid>
+				
+				
+		<h:form id="form">
+			<h:panelGrid style="margin:auto;">
+			
 
 				<h:panelGrid columns="4">
 
@@ -46,7 +49,7 @@
 						maxdate="#{addCandidateController.maxDate}" pattern="dd-MM-yyyy"
 						required="true" yearRange="-50:-18"
 						requiredMessage="Debe seleccionar fecha de nacimiento.">
-						<p:ajax event="dateSelect" update=":formAdd:age :formAdd:messages"
+						<p:ajax event="dateSelect" update=":form:age :messages"
 							listener="#{addCandidateController.calculateAge}" />
 					</p:calendar>
 
@@ -104,14 +107,7 @@
 						value="#{addCandidateController.candidateSelected.phone}"
 						tabindex="6"></p:inputText>
 
-					<p:outputLabel value="Area"></p:outputLabel>
-					<p:selectOneMenu id="areas" tabindex="17"
-						value="#{addCandidateController.areaSelected}">
-						<f:selectItem itemValue="" itemLabel="Seleccione..."></f:selectItem>
-						<f:selectItems value="#{addCandidateController.areas}"></f:selectItems>
-						<p:ajax listener="#{addCandidateController.searchSubAreas}"
-							update=":formAdd:subAreas :formAdd:messages"></p:ajax>
-					</p:selectOneMenu>
+					
 
 
 					<p:outputLabel value="Dirección"></p:outputLabel>
@@ -119,13 +115,7 @@
 						value="#{addCandidateController.candidateSelected.homeAddress}"
 						required="true" requiredMessage="Debe ingresar dirección."></p:inputText>
 
-					<p:outputLabel value="SubArea"></p:outputLabel>
-					<p:selectOneMenu id="subAreas" required="true" tabindex="18"
-						requiredMessage="Debe seleccionar: Subarea."
-						value="#{addCandidateController.subAreaSelected}">
-						<f:selectItem itemValue="" itemLabel="Seleccione"></f:selectItem>
-						<f:selectItems value="#{addCandidateController.subAreas}"></f:selectItems>
-					</p:selectOneMenu>
+					
 
 					<p:outputLabel value="País"></p:outputLabel>
 					<p:selectOneMenu id="country" required="true"
@@ -134,7 +124,7 @@
 						<f:selectItem itemValue="" itemLabel="Seleccione"></f:selectItem>
 						<f:selectItems value="#{addCandidateController.countries}"></f:selectItems>
 						<p:ajax listener="#{addCandidateController.searchDepartments}"
-							update=":formAdd:department :formAdd:province :formAdd:district :formAdd:messages"></p:ajax>
+							update=":form:department :form:province :form:district :messages"></p:ajax>
 					</p:selectOneMenu>
 
 					<p:outputLabel value="Experiencia"></p:outputLabel>
@@ -154,7 +144,7 @@
 						<f:selectItem itemValue="" itemLabel="Seleccione"></f:selectItem>
 						<f:selectItems value="#{addCandidateController.departments}"></f:selectItems>
 						<p:ajax listener="#{addCandidateController.searchProvinces}"
-							update=":formAdd:province :formAdd:district :formAdd:messages"></p:ajax>
+							update=":form:province :form:district :messages"></p:ajax>
 					</p:selectOneMenu>
 
 					<p:outputLabel value="Tipo de ingreso"></p:outputLabel>
@@ -173,22 +163,10 @@
 						<f:selectItem itemValue="" itemLabel="Seleccione"></f:selectItem>
 						<f:selectItems value="#{addCandidateController.provinces}"></f:selectItems>
 						<p:ajax listener="#{addCandidateController.searchDistricts}"
-							update=":formAdd:district :formAdd:messages"></p:ajax>
+							update=":form:district :messages"></p:ajax>
 					</p:selectOneMenu>
 
-					<p:outputLabel value="Fuente de reclutamiento"></p:outputLabel>
-					<p:selectOneMenu required="true" tabindex="21"
-						requiredMessage="Debe seleccionar fuente de reclutamiento."
-						value="#{addCandidateController.recruimentSourceSelected}">
-						<f:selectItem itemValue="" itemLabel="Seleccione"></f:selectItem>
-						<f:selectItems value="#{addCandidateController.recruimentSources}"></f:selectItems>
-						<p:ajax
-							listener="#{addCandidateController.onChangeRecruitmentSource}"
-							update=":formAdd:agentNameLabel :formAdd:agentNameValue
-							:formAdd:agentDocumentNumberLabel :formAdd:agentDocumentNumberValue 
-							:formAdd:agentCampaignLabel :formAdd:agentCampaignValue
-							:formAdd:messages"></p:ajax>
-					</p:selectOneMenu>
+					
 
 					<p:outputLabel value="Distrito"></p:outputLabel>
 					<p:selectOneMenu id="district" tabindex="11"
@@ -197,88 +175,11 @@
 						<f:selectItems value="#{addCandidateController.districts}"></f:selectItems>
 					</p:selectOneMenu>
 
-					<h:panelGroup id="agentNameLabel">
-						<p:outputLabel value="Nombre de agente"
-							rendered="#{addCandidateController.isReferred or addCandidateController.isFlier}"></p:outputLabel>
-						<p:outputLabel value="Nombre de Feria"
-							rendered="#{addCandidateController.isJobFair}"></p:outputLabel>
-					</h:panelGroup>
-
-					<h:panelGroup id="agentNameValue">
-						<p:inputText style="width: 200px;"
-							rendered="#{addCandidateController.isReferred or addCandidateController.isFlier}"
-							value="#{addCandidateController.candidateSelected.agentName}"
-							required="true" requiredMessage="Debe ingresar nombre de agente."></p:inputText>
-						<p:inputText style="width: 200px;"
-							rendered="#{addCandidateController.isJobFair}"
-							value="#{addCandidateController.candidateSelected.jobFairName}"
-							required="true" requiredMessage="Debe ingresar nombre de feria."></p:inputText>
-					</h:panelGroup>
-
-					<p:outputLabel value="Estado"></p:outputLabel>
-					<p:selectOneMenu tabindex="22"
-						value="#{addCandidateController.interviewStateSelected}">
-						<f:selectItem itemValue="" itemLabel="Seleccione"></f:selectItem>
-						<f:selectItem itemValue="a" itemLabel="Agendado"></f:selectItem>
-						<f:selectItems value="#{addCandidateController.interviewStates}"></f:selectItems>
-						<p:ajax listener="#{addCandidateController.onChangeState}"
-							update=":formAdd:calendarLabel :formAdd:calendarValue
-							:formAdd:messages"></p:ajax>
-					</p:selectOneMenu>
-
-					<h:panelGroup id="agentDocumentNumberLabel">
-						<p:outputLabel value="DNI"
-							rendered="#{addCandidateController.isReferred}"></p:outputLabel>
-					</h:panelGroup>
-
-					<h:panelGroup id="agentDocumentNumberValue">
-						<p:inputText style="width: 200px;"
-							rendered="#{addCandidateController.isReferred}"
-							value="#{addCandidateController.candidateSelected.agentDocumentNumber}"
-							required="true" requiredMessage="Debe ingresar DNI."></p:inputText>
-					</h:panelGroup>
-
-					<h:panelGroup id="calendarLabel">
-						<p:outputLabel value="Fecha de agendamiento"
-							rendered="#{addCandidateController.isScheduled}"></p:outputLabel>
-						<p:outputLabel value="Fecha de entrevista"
-							rendered="#{addCandidateController.isPending}"></p:outputLabel>
-					</h:panelGroup>
-
-					<h:panelGroup id="calendarValue">
-						<p:calendar rendered="#{addCandidateController.isScheduled}"
-							tabindex="23"
-							value="#{addCandidateController.candidateSelected.scheduledAt}"
-							pattern="dd-MM-yyyy hh:mm:ss a" required="true" stepMinute="10"
-							requiredMessage="Debe seleccionar fecha de agendamiento">
-						</p:calendar>
-						<p:calendar rendered="#{addCandidateController.isPending}"
-							tabindex="23" value="#{addCandidateController.interviewedAt}"
-							pattern="dd-MM-yyyy hh:mm:ss a" required="true" stepMinute="10"
-							requiredMessage="Debe seleccionar fecha de entrevista.">
-						</p:calendar>
-					</h:panelGroup>
-
-
-					<h:panelGroup id="agentCampaignLabel">
-						<p:outputLabel value="Campaña"
-							rendered="#{addCandidateController.isReferred}"></p:outputLabel>
-					</h:panelGroup>
-
-					<h:panelGroup id="agentCampaignValue">
-						<p:inputText style="width: 200px;"
-							rendered="#{addCandidateController.isReferred}"
-							value="#{addCandidateController.candidateSelected.agentCampaign}"
-							required="true" requiredMessage="Debe ingresar campaña."></p:inputText>
-					</h:panelGroup>
-
 				</h:panelGrid>
 
-
-
 				<h:panelGrid style="margin:auto;text-align:center;">
-					<p:commandButton action="#{addCandidateController.add}"
-						value="Agregar" ajax="false" tabindex="24">
+					<p:commandButton actionListener="#{addCandidateController.add}" update="@form :messages"
+						value="Agregar" tabindex="24">
 					</p:commandButton>
 				</h:panelGrid>
 			</h:panelGrid>

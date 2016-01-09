@@ -16,6 +16,19 @@ public class AreaEao {
 
 	@PersistenceContext
 	private EntityManager em;
+	
+	public Area findById(Integer areaId) throws EaoException {
+		try {
+			Area area = em.find(Area.class, areaId);
+			
+			return area;
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new EaoException(e.getMessage());
+		}
+	}
+	
 
 	public List<Area> findAreasParent() throws EaoException {
 		try {

@@ -3,19 +3,19 @@ package com.returnsoft.recruitment.controller;
 import java.io.Serializable;
 
 import javax.ejb.EJB;
-import javax.faces.bean.ManagedBean;
-import javax.faces.bean.RequestScoped;
+import javax.enterprise.context.RequestScoped;
 import javax.faces.context.FacesContext;
+import javax.inject.Inject;
+import javax.inject.Named;
 
-
-import com.returnsoft.recruitment.exception.SessionTypeInvalidException;
 import com.returnsoft.recruitment.entity.User;
-
+import com.returnsoft.recruitment.exception.UserTypeNotFoundException;
 import com.returnsoft.recruitment.service.UserService;
 import com.returnsoft.recruitment.util.FacesUtil;
+import com.returnsoft.recruitment.util.SessionBean;
 
 
-@ManagedBean
+@Named
 @RequestScoped
 public class LoginController implements Serializable {
 
@@ -30,7 +30,11 @@ public class LoginController implements Serializable {
 	@EJB
 	private UserService userService;
 	
+	@Inject
 	private FacesUtil facesUtil;
+	
+	@Inject
+	private SessionBean sessionBean;
 
 	public LoginController() {
 		
@@ -44,25 +48,22 @@ public class LoginController implements Serializable {
 			// BUSCA USUARIO Y CLAVE
 			User user = userService.doLogin(username, password);
 			
-			SessionBean sessionBean = null;
 			
 			switch (user.getUserType()) {
 			case ADMIN:
-				sessionBean = new SessionBean();
+				
 				sessionBean.setUser(user);
 				sessionBean.setIsAdmin(true);
-				FacesContext.getCurrentInstance().getExternalContext()
-				.getSessionMap().put("sessionBean", sessionBean);
+				
 				return "home?faces-redirect=true";
-			case AGENT:
-				sessionBean = new SessionBean();
+				
+			case RECRUITER:
+				
 				sessionBean.setUser(user);
-				FacesContext.getCurrentInstance().getExternalContext()
-				.getSessionMap().put("sessionBean", sessionBean);
 				return "home?faces-redirect=true";
 				
 			default:
-				throw new SessionTypeInvalidException();
+				throw new UserTypeNotFoundException();
 			}
 
 
@@ -70,8 +71,7 @@ public class LoginController implements Serializable {
 		} catch (Exception e) {
 
 			e.printStackTrace();
-			facesUtil.sendErrorMessage(e.getClass().getSimpleName(),
-					e.getMessage());
+			facesUtil.sendErrorMessage(e.getMessage());
 			return null;
 		}
 
@@ -82,13 +82,13 @@ public class LoginController implements Serializable {
 			FacesContext.getCurrentInstance().getExternalContext()
 					.invalidateSession();
 
-			return "login.xhtml";
+			return "login?faces-redirect=true";
 		} catch (Exception e) {
 
 			e.printStackTrace();
-			facesUtil.sendErrorMessage(e.getClass().getSimpleName(),
-					e.getMessage());
-			return null;
+			facesUtil.sendErrorMessage(e.getMessage());
+			
+			return "login?faces-redirect=true";
 		}
 
 	}

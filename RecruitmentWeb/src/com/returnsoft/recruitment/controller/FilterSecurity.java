@@ -14,6 +14,8 @@ import javax.servlet.http.HttpServletResponse;
 //import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import com.returnsoft.recruitment.util.SessionBean;
+
 public class FilterSecurity implements Filter {
 
 	@Override

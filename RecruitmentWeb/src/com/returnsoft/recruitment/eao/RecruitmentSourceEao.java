@@ -8,7 +8,7 @@ import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 
-import com.returnsoft.recruitment.entity.RecruimentSource;
+import com.returnsoft.recruitment.entity.RecruitmentSource;
 import com.returnsoft.recruitment.exception.EaoException;
 
 
@@ -18,12 +18,12 @@ public class RecruitmentSourceEao {
 	@PersistenceContext
 	private EntityManager em;
 
-	public List<RecruimentSource> findAll() throws EaoException {
+	public List<RecruitmentSource> findAll() throws EaoException {
 		try {
-			TypedQuery<RecruimentSource> q = em.createQuery(
-					"SELECT rs FROM RecruimentSource rs",
-					RecruimentSource.class);
-			List<RecruimentSource> recruimentSources = q.getResultList();
+			TypedQuery<RecruitmentSource> q = em.createQuery(
+					"SELECT rs FROM RecruitmentSource rs",
+					RecruitmentSource.class);
+			List<RecruitmentSource> recruimentSources = q.getResultList();
 			return recruimentSources;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -31,11 +31,11 @@ public class RecruitmentSourceEao {
 		}
 	}
 	
-	public RecruimentSource findById(Integer recruitmentSourceId) throws EaoException {
+	public RecruitmentSource findById(Integer recruitmentSourceId) throws EaoException {
 
 		try {
 
-			RecruimentSource recruimentSource = em.find(RecruimentSource.class, recruitmentSourceId);
+			RecruitmentSource recruimentSource = em.find(RecruitmentSource.class, recruitmentSourceId);
 
 			return recruimentSource;
 

@@ -1,43 +1,38 @@
 package com.returnsoft.recruitment.controller;
 
 import java.io.Serializable;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 import javax.ejb.EJB;
-import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ViewScoped;
-import javax.faces.context.FacesContext;
-import javax.faces.event.ComponentSystemEvent;
 import javax.faces.model.SelectItem;
+import javax.inject.Inject;
+
+import org.primefaces.model.LazyDataModel;
 
 import com.returnsoft.recruitment.entity.Area;
 import com.returnsoft.recruitment.entity.Candidate;
-import com.returnsoft.recruitment.entity.Country;
-import com.returnsoft.recruitment.entity.Department;
-import com.returnsoft.recruitment.entity.District;
-import com.returnsoft.recruitment.entity.EducationLevel;
 import com.returnsoft.recruitment.entity.Interview;
 import com.returnsoft.recruitment.entity.InterviewState;
 import com.returnsoft.recruitment.entity.OjtState;
-import com.returnsoft.recruitment.entity.Province;
-import com.returnsoft.recruitment.entity.RecruimentSource;
 import com.returnsoft.recruitment.entity.TrainingState;
 import com.returnsoft.recruitment.entity.User;
 import com.returnsoft.recruitment.enumeration.UserTypeEnum;
 import com.returnsoft.recruitment.exception.UserLoggedNotFoundException;
-import com.returnsoft.recruitment.exception.UserPermissionNotFoundException;
 import com.returnsoft.recruitment.service.AreaService;
+import com.returnsoft.recruitment.service.CandidateService;
+import com.returnsoft.recruitment.service.InterviewService;
 import com.returnsoft.recruitment.service.InterviewStateService;
 import com.returnsoft.recruitment.service.OjtStateService;
 import com.returnsoft.recruitment.service.TrainingStateService;
 import com.returnsoft.recruitment.service.UserService;
+import com.returnsoft.recruitment.util.CandidateLazyModel;
 import com.returnsoft.recruitment.util.FacesUtil;
+import com.returnsoft.recruitment.util.SessionBean;
 
 @ManagedBean
 @ViewScoped
@@ -77,7 +72,7 @@ public class SearchCandidateController implements Serializable {
 	private List<SelectItem> educationLevels;
 	private String educationLevelSelected;
 
-	private List<Candidate> candidates;
+	private LazyDataModel<Candidate> candidates;
 	private Candidate candidateSelected;
 
 	private String candidateDocumentNumberSearch;
@@ -102,7 +97,11 @@ public class SearchCandidateController implements Serializable {
 	private Boolean isFlier;
 	private Boolean isReferred;
 
+	@Inject
 	private FacesUtil facesUtil;
+	
+	@Inject
+	private SessionBean sessionBean;
 
 	@EJB
 	private UserService userService;
@@ -118,9 +117,21 @@ public class SearchCandidateController implements Serializable {
 
 	@EJB
 	private OjtStateService ojtStateService;
+	
+	@EJB
+	private CandidateService candidateService;
+	
+	@EJB
+	private InterviewService interviewService;
+	
+	
+	private List<Interview> interviews;
+	
+	
 
 	public SearchCandidateController() {
 		System.out.println("ingreso al constructor candidateController");
+		
 		Date today = new Date();
 		Calendar calendarMin = Calendar.getInstance();
 		calendarMin.setTime(today);
@@ -133,30 +144,25 @@ public class SearchCandidateController implements Serializable {
 		this.maxDate = calendarMax.getTime();
 		// System.out.println("maxDate" + maxDate);
 		candidateSelected = new Candidate();
+		
 		System.out.println("termino el constructor candidateController");
 
-		facesUtil = new FacesUtil();
+		
 	}
 
 	public String initialize() {
 		try {
 			
-			System.out.println("ingreso a initialize de SearchCandidateController");
+			//System.out.println("ingreso a initialize de SearchCandidateController");
+			
+			if (sessionBean == null || sessionBean.getUser() == null || sessionBean.getUser().getId() == null) {
+				throw new UserLoggedNotFoundException();
+			}
 
-			SessionBean sessionBean = (SessionBean) FacesContext.getCurrentInstance().getExternalContext()
-					.getSessionMap().get("sessionBean");
-
-			if (sessionBean != null && sessionBean.getUser() != null && sessionBean.getUser().getId() > 0) {
-
-				if (!sessionBean.getUser().getUserType().equals(UserTypeEnum.ADMIN)
-						&& !sessionBean.getUser().getUserType().equals(UserTypeEnum.AGENT)) {
-					throw new UserPermissionNotFoundException();
-				}
-
+		
 				//////////////////////////////////////////////////////////////
 
 				List<Area> areasDto = areaService.findAreasByRecruiter(sessionBean.getUser().getId());
-
 				areas = new ArrayList<SelectItem>();
 				for (Area areaDto : areasDto) {
 					SelectItem item = new SelectItem();
@@ -165,7 +171,7 @@ public class SearchCandidateController implements Serializable {
 					areas.add(item);
 				}
 
-				List<User> recruitersEntity = userService.findByUserType(UserTypeEnum.AGENT);
+				List<User> recruitersEntity = userService.findByUserType(UserTypeEnum.RECRUITER);
 				recruiters = new ArrayList<SelectItem>();
 				for (User dto : recruitersEntity) {
 					SelectItem item = new SelectItem();
@@ -205,15 +211,9 @@ public class SearchCandidateController implements Serializable {
 
 				return null;
 
-			} else {
-				throw new UserLoggedNotFoundException();
-			}
+			
 
 		} catch (UserLoggedNotFoundException e) {
-			e.printStackTrace();
-			facesUtil.sendErrorMessage(e.getClass().getSimpleName(), e.getMessage());
-			return "login.xhtml?faces-redirect=true";
-		} catch (UserPermissionNotFoundException e) {
 			e.printStackTrace();
 			facesUtil.sendErrorMessage(e.getClass().getSimpleName(), e.getMessage());
 			return "login.xhtml?faces-redirect=true";
@@ -224,129 +224,18 @@ public class SearchCandidateController implements Serializable {
 		}
 	}
 
-	public void beforeSearch() {
-		System.out.println("ingreso a beforeSearchCandidate");
-
-		try {
-
-			if (areas == null || areas.size() == 0) {
-
-				/*
-				 * SessionBean session = (SessionBean) FacesContext
-				 * .getCurrentInstance().getExternalContext()
-				 * .getSessionMap().get("sessionBean"); Integer recruiterId =
-				 * session.getRecruiterId();
-				 * 
-				 * AreaInterface areaService = (AreaInterface) new
-				 * InitialContext( Util.getInitProperties())
-				 * .lookup("java:global/RecruitmentEAR/RecruitmentEJB/AreaBean"
-				 * + "!com.returnsoft.resource.service.AreaInterface");
-				 */
-
-				/*
-				 * List<Area> areasDto = areaService
-				 * .findAreasByRecruiter(recruiterId);
-				 */
-
-				// areas = new ArrayList<SelectItem>();
-				/*
-				 * for (AreaDto areaDto : areasDto) { SelectItem item = new
-				 * SelectItem(); item.setValue(areaDto.getId().toString());
-				 * item.setLabel(areaDto.getName()); areas.add(item); }
-				 */
-			}
-
-			if (recruiters == null || recruiters.size() == 0) {
-				/*
-				 * RecruiterInterface recruiterService = (RecruiterInterface)
-				 * new InitialContext( Util.getInitProperties()) .lookup(
-				 * "java:global/RecruitmentEAR/RecruitmentEJB/RecruiterBean" +
-				 * "!com.returnsoft.resource.service.RecruiterInterface");
-				 * List<RecruiterDto> dtos = recruiterService.findAll();
-				 */
-				recruiters = new ArrayList<SelectItem>();
-				/*
-				 * for (RecruiterDto dto : dtos) { SelectItem item = new
-				 * SelectItem(); item.setValue(dto.getId().toString());
-				 * item.setLabel(dto.getFirstname() + " " + dto.getLastname());
-				 * recruiters.add(item); }
-				 */
-			}
-
-			if (interviewStates == null || interviewStates.size() == 0) {
-				/*
-				 * InterviewStateInterface interviewStateService =
-				 * (InterviewStateInterface) new InitialContext(
-				 * Util.getInitProperties()) .lookup(
-				 * "java:global/RecruitmentEAR/RecruitmentEJB/InterviewStateBean"
-				 * +
-				 * "!com.returnsoft.resource.service.InterviewStateInterface");
-				 * List<InterviewStateDto> dtos =
-				 * interviewStateService.findAll();
-				 */
-				interviewStates = new ArrayList<SelectItem>();
-				/*
-				 * for (InterviewStateDto dto : dtos) { SelectItem item = new
-				 * SelectItem(); item.setValue(dto.getId().toString());
-				 * item.setLabel(dto.getName()); interviewStates.add(item); }
-				 */
-			}
-
-			if (trainingStates == null || trainingStates.size() == 0) {
-				/*
-				 * TrainingStateInterface trainingStateService =
-				 * (TrainingStateInterface) new InitialContext(
-				 * Util.getInitProperties()) .lookup(
-				 * "java:global/RecruitmentEAR/RecruitmentEJB/TrainingStateBean"
-				 * + "!com.returnsoft.resource.service.TrainingStateInterface");
-				 * List<TrainingStateDto> dtos = trainingStateService.findAll();
-				 */
-				trainingStates = new ArrayList<SelectItem>();
-				/*
-				 * for (TrainingStateDto dto : dtos) { SelectItem item = new
-				 * SelectItem(); item.setValue(dto.getId().toString());
-				 * item.setLabel(dto.getName()); trainingStates.add(item); }
-				 */
-			}
-
-			if (ojtStates == null || ojtStates.size() == 0) {
-				/*
-				 * OjtStateInterface ojtStateService = (OjtStateInterface) new
-				 * InitialContext( Util.getInitProperties()) .lookup(
-				 * "java:global/RecruitmentEAR/RecruitmentEJB/OjtStateBean" +
-				 * "!com.returnsoft.resource.service.OjtStateInterface");
-				 * List<OjtStateDto> dtos = ojtStateService.findAll();
-				 */
-				ojtStates = new ArrayList<SelectItem>();
-				/*
-				 * for (OjtStateDto dto : dtos) { SelectItem item = new
-				 * SelectItem(); item.setValue(dto.getId().toString());
-				 * item.setLabel(dto.getName()); ojtStates.add(item); }
-				 */
-			}
-
-			if (candidates == null || candidates.size() == 0) {
-				candidateSelected = null;
-			}
-
-			System.out.println("termino beforeSearchCandidate");
-
-		} catch (Exception e) {
-			/*
-			 * if (!(e instanceof RecruitmentException) && !(e instanceof
-			 * SecurityExcepcion)) { e.printStackTrace(); }
-			 */
-			FacesMessage msg = new FacesMessage(e.getMessage(), e.getMessage());
-			msg.setSeverity(FacesMessage.SEVERITY_ERROR);
-			FacesContext.getCurrentInstance().addMessage(null, msg);
-		}
-	}
+	
 
 	public void searchSubAreas() {
 
 		System.out.println("ingreso a searchsubareas: " + areaSelected);
 
 		try {
+			
+			if (sessionBean == null || sessionBean.getUser() == null || sessionBean.getUser().getId() == null) {
+				throw new UserLoggedNotFoundException();
+			}
+			
 
 			if (areaSelected != null && !areaSelected.equals("")) {
 
@@ -354,10 +243,7 @@ public class SearchCandidateController implements Serializable {
 
 					if (areas != null && areas.size() > 0) {
 
-						SessionBean session = (SessionBean) FacesContext.getCurrentInstance().getExternalContext()
-								.getSessionMap().get("sessionBean");
-
-						Integer recruiterId = session.getUser().getId();
+						Integer recruiterId = sessionBean.getUser().getId();
 						subAreas = new ArrayList<SelectItem>();
 
 						for (SelectItem areaItem : areas) {
@@ -377,9 +263,7 @@ public class SearchCandidateController implements Serializable {
 				} else {
 
 					Integer areaId = Integer.parseInt(areaSelected);
-					SessionBean session = (SessionBean) FacesContext.getCurrentInstance().getExternalContext()
-							.getSessionMap().get("sessionBean");
-					Integer recruiterId = session.getUser().getId();
+					Integer recruiterId = sessionBean.getUser().getId();
 
 					List<Area> areasEntity = areaService.findSubAreasByRecruiter(areaId, recruiterId);
 					subAreas = new ArrayList<SelectItem>();
@@ -396,13 +280,8 @@ public class SearchCandidateController implements Serializable {
 			}
 
 		} catch (Exception e) {
-			/*
-			 * if (!(e instanceof RecruitmentException) && !(e instanceof
-			 * SecurityExcepcion)) { e.printStackTrace(); }
-			 */
-			FacesMessage msg = new FacesMessage(e.getMessage(), e.getMessage());
-			msg.setSeverity(FacesMessage.SEVERITY_ERROR);
-			FacesContext.getCurrentInstance().addMessage(null, msg);
+			e.printStackTrace();
+			facesUtil.sendErrorMessage(e.getMessage());
 		}
 	}
 
@@ -410,6 +289,11 @@ public class SearchCandidateController implements Serializable {
 
 		// System.out.println("ingreso a search person");
 		try {
+			
+			if (sessionBean == null || sessionBean.getUser() == null || sessionBean.getUser().getId() == null) {
+				throw new UserLoggedNotFoundException();
+			}
+			
 
 			/*
 			 * CandidateInterface candidateService = (CandidateInterface) new
@@ -423,16 +307,16 @@ public class SearchCandidateController implements Serializable {
 				recruiterId = Integer.parseInt(recruiterSelected);
 			}
 
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-			String scheduledAtFormatter = null;
-			if (scheduledAtSearch != null) {
-				scheduledAtFormatter = sdf.format(scheduledAtSearch);
-			}
+			//SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+			//String scheduledAtFormatter = null;
+			//if (scheduledAtSearch != null) {
+				//scheduledAtFormatter = sdf.format(scheduledAtSearch);
+			//}
 
-			String createdAtFormatter = null;
-			if (createdAtSearch != null) {
-				createdAtFormatter = sdf.format(createdAtSearch);
-			}
+			///String createdAtFormatter = null;
+			//if (createdAtSearch != null) {
+			//	createdAtFormatter = sdf.format(createdAtSearch);
+			//}
 
 			Integer interviewStateId = null;
 			if (interviewStateSelected != null && !interviewStateSelected.equals("")) {
@@ -482,154 +366,32 @@ public class SearchCandidateController implements Serializable {
 				}
 			}
 
-			/*
-			 * candidates = candidateService.findList(areasId,subAreasId,
-			 * recruiterId, interviewStateId, trainingStateId, ojtStateId,
-			 * scheduledAtFormatter, createdAtFormatter,
-			 * candidateDocumentNumberSearch, candidateNameSearch);
-			 */
+			
+			  candidates = new CandidateLazyModel(candidateService,areasId,subAreasId,
+			  interviewStateId, trainingStateId, ojtStateId,
+			  scheduledAtSearch, createdAtSearch,
+			  candidateDocumentNumberSearch, candidateNameSearch);
+			 
 
 			candidateSelected = null;
 
 		} catch (Exception e) {
-			/*
-			 * if (!(e instanceof RecruitmentException) && !(e instanceof
-			 * SecurityExcepcion)) { e.printStackTrace(); }
-			 */
-			FacesMessage msg = new FacesMessage(e.getMessage(), e.getMessage());
-			msg.setSeverity(FacesMessage.SEVERITY_ERROR);
-			FacesContext.getCurrentInstance().addMessage(null, msg);
+			e.printStackTrace();
+			facesUtil.sendErrorMessage(e.getMessage());
 		}
 	}
 
-	public void beforeAdd() {
-
-		try {
-			initialize();
-
-			if (interviewStates == null || interviewStates.size() == 0) {
-				/*
-				 * InterviewStateInterface interviewStateService =
-				 * (InterviewStateInterface) new InitialContext(
-				 * Util.getInitProperties()) .lookup(
-				 * "java:global/RecruitmentEAR/RecruitmentEJB/InterviewStateBean"
-				 * +
-				 * "!com.returnsoft.resource.service.InterviewStateInterface");
-				 * List<InterviewStateDto> dtos = interviewStateService
-				 * .findIsPending();
-				 */
-				interviewStates = new ArrayList<SelectItem>();
-				/*
-				 * for (InterviewStateDto dto : dtos) { SelectItem item = new
-				 * SelectItem(); item.setValue(dto.getId().toString());
-				 * item.setLabel(dto.getName()); interviewStates.add(item); }
-				 */
-			}
-
-			if (areas == null || areas.size() == 0) {
-
-				/*
-				 * SessionBean session = (SessionBean) FacesContext
-				 * .getCurrentInstance().getExternalContext()
-				 * .getSessionMap().get("sessionBean"); Integer recruiterId =
-				 * session.getRecruiterId();
-				 * 
-				 * AreaInterface areaService = (AreaInterface) new
-				 * InitialContext( Util.getInitProperties())
-				 * .lookup("java:global/RecruitmentEAR/RecruitmentEJB/AreaBean"
-				 * + "!com.returnsoft.resource.service.AreaInterface");
-				 * 
-				 * List<AreaDto> areasDto = areaService
-				 * .findAreasByRecruiter(recruiterId);
-				 */
-
-				areas = new ArrayList<SelectItem>();
-				/*
-				 * for (AreaDto areaDto : areasDto) { SelectItem item = new
-				 * SelectItem(); item.setValue(areaDto.getId().toString());
-				 * item.setLabel(areaDto.getName()); areas.add(item); }
-				 */
-			}
-
-			if (countries == null || countries.size() == 0) {
-				/*
-				 * CountryInterface countryService = (CountryInterface) new
-				 * InitialContext( Util.getInitProperties()) .lookup(
-				 * "java:global/RecruitmentEAR/RecruitmentEJB/CountryBean" +
-				 * "!com.returnsoft.resource.service.CountryInterface");
-				 * List<CountryDto> countriesDto = countryService.findAll();
-				 */
-				countries = new ArrayList<SelectItem>();
-				/*
-				 * for (CountryDto countryDto : countriesDto) { SelectItem item
-				 * = new SelectItem();
-				 * item.setValue(countryDto.getId().toString());
-				 * item.setLabel(countryDto.getName()); countries.add(item); }
-				 */
-			}
-
-			if (recruimentSources == null || recruimentSources.size() == 0) {
-				/*
-				 * RecruimentSourceInterface recruimentSourceService =
-				 * (RecruimentSourceInterface) new InitialContext(
-				 * Util.getInitProperties()) .lookup(
-				 * "java:global/RecruitmentEAR/RecruitmentEJB/RecruimentSourceBean"
-				 * +
-				 * "!com.returnsoft.resource.service.RecruimentSourceInterface")
-				 * ; List<RecruimentSourceDto> recruimentSourcesDto =
-				 * recruimentSourceService .findAll();
-				 */
-				recruimentSources = new ArrayList<SelectItem>();
-				/*
-				 * for (RecruimentSourceDto recruimentSourceDto :
-				 * recruimentSourcesDto) { SelectItem item = new SelectItem();
-				 * item.setValue(recruimentSourceDto.getId().toString());
-				 * item.setLabel(recruimentSourceDto.getName());
-				 * recruimentSources.add(item); }
-				 */
-			}
-
-			if (educationLevels == null || educationLevels.size() == 0) {
-				/*
-				 * EducationLevelInterface educationLevelService =
-				 * (EducationLevelInterface) new InitialContext(
-				 * Util.getInitProperties()) .lookup(
-				 * "java:global/RecruitmentEAR/RecruitmentEJB/EducationLevelBean"
-				 * +
-				 * "!com.returnsoft.resource.service.EducationLevelInterface");
-				 * List<EducationLevelDto> educationLevelsDto =
-				 * educationLevelService .findAll();
-				 */
-				educationLevels = new ArrayList<SelectItem>();
-				/*
-				 * for (EducationLevelDto educationLevelDto :
-				 * educationLevelsDto) { SelectItem item = new SelectItem();
-				 * item.setValue(educationLevelDto.getId().toString());
-				 * item.setLabel(educationLevelDto.getName());
-				 * educationLevels.add(item); }
-				 */
-			}
-
-			// candidateSelected = new CandidateDto();
-			// interviewSelected = new InterviewDto();
-
-		} catch (Exception e) {
-			/*
-			 * if (!(e instanceof RecruitmentException) && !(e instanceof
-			 * SecurityExcepcion)) { e.printStackTrace(); }
-			 */
-			FacesMessage msg = new FacesMessage(e.getMessage(), e.getMessage());
-			msg.setSeverity(FacesMessage.SEVERITY_ERROR);
-			FacesContext.getCurrentInstance().addMessage(null, msg);
-		}
-
-	}
-
+	
 	public void searchDepartments() {
 
 		// System.out.println("ingreso a
 		// searchsubdepartments"+departmentSelected);
 		try {
+			if (sessionBean == null || sessionBean.getUser() == null || sessionBean.getUser().getId() == null) {
+				throw new UserLoggedNotFoundException();
+			}
+			
+			
 			Integer countryId = Integer.parseInt(countrySelected);
 			// /System.out.println(departmentId);
 			if (countryId > 0) {
@@ -659,13 +421,8 @@ public class SearchCandidateController implements Serializable {
 			}
 
 		} catch (Exception e) {
-			/*
-			 * if (!(e instanceof RecruitmentException) && !(e instanceof
-			 * SecurityExcepcion)) { e.printStackTrace(); }
-			 */
-			FacesMessage msg = new FacesMessage(e.getMessage(), e.getMessage());
-			msg.setSeverity(FacesMessage.SEVERITY_ERROR);
-			FacesContext.getCurrentInstance().addMessage(null, msg);
+			e.printStackTrace();
+			facesUtil.sendErrorMessage(e.getMessage());
 		}
 	}
 
@@ -674,6 +431,11 @@ public class SearchCandidateController implements Serializable {
 		// System.out.println("ingreso a
 		// searchsubdepartments"+departmentSelected);
 		try {
+			
+			if (sessionBean == null || sessionBean.getUser() == null || sessionBean.getUser().getId() == null) {
+				throw new UserLoggedNotFoundException();
+			}
+			
 			Integer departmentId = Integer.parseInt(departmentSelected);
 			// /System.out.println(departmentId);
 			if (departmentId > 0) {
@@ -698,13 +460,8 @@ public class SearchCandidateController implements Serializable {
 			}
 
 		} catch (Exception e) {
-			/*
-			 * if (!(e instanceof RecruitmentException) && !(e instanceof
-			 * SecurityExcepcion)) { e.printStackTrace(); }
-			 */
-			FacesMessage msg = new FacesMessage(e.getMessage(), e.getMessage());
-			msg.setSeverity(FacesMessage.SEVERITY_ERROR);
-			FacesContext.getCurrentInstance().addMessage(null, msg);
+			e.printStackTrace();
+			facesUtil.sendErrorMessage(e.getMessage());
 		}
 	}
 
@@ -713,6 +470,11 @@ public class SearchCandidateController implements Serializable {
 		// System.out.println("ingreso a
 		// searchsubdepartments"+departmentSelected);
 		try {
+			
+			if (sessionBean == null || sessionBean.getUser() == null || sessionBean.getUser().getId() == null) {
+				throw new UserLoggedNotFoundException();
+			}
+			
 			Integer provinceId = Integer.parseInt(provinceSelected);
 			// /System.out.println(departmentId);
 			if (provinceId > 0) {
@@ -735,685 +497,22 @@ public class SearchCandidateController implements Serializable {
 			}
 
 		} catch (Exception e) {
-			/*
-			 * if (!(e instanceof RecruitmentException) && !(e instanceof
-			 * SecurityExcepcion)) { e.printStackTrace(); }
-			 */
-			FacesMessage msg = new FacesMessage(e.getMessage(), e.getMessage());
-			msg.setSeverity(FacesMessage.SEVERITY_ERROR);
-			FacesContext.getCurrentInstance().addMessage(null, msg);
+			e.printStackTrace();
+			facesUtil.sendErrorMessage(e.getMessage());
 		}
 	}
 
-	public void calculateAge() {
-		try {
 
-			System.out.println("ingreso a calculate Age");
-
-			if (candidateSelected != null && candidateSelected.getBornDate() != null) {
-
-				Date current = new Date();
-				Long difference = current.getTime() - candidateSelected.getBornDate().getTime();
-				Calendar differenceCalendar = Calendar.getInstance();
-				differenceCalendar.setTimeInMillis(difference);
-				age = (differenceCalendar.get(Calendar.YEAR) - 1970) + " años.";
-
-			}
-
-		} catch (Exception e) {
-			/*
-			 * if (!(e instanceof RecruitmentException) && !(e instanceof
-			 * SecurityExcepcion)) { e.printStackTrace(); }
-			 */
-			FacesMessage msg = new FacesMessage(e.getMessage(), e.getMessage());
-			msg.setSeverity(FacesMessage.SEVERITY_ERROR);
-			FacesContext.getCurrentInstance().addMessage(null, msg);
-		}
-	}
-
-	public String add() {
-		try {
-
-			if (countrySelected != null && countrySelected.length() > 0) {
-				Integer countryId = Integer.parseInt(countrySelected);
-				Country country = new Country();
-				country.setId(countryId);
-				candidateSelected.setCountry(country);
-			}
-
-			if (departmentSelected != null && departmentSelected.length() > 0) {
-				Integer departmentId = Integer.parseInt(departmentSelected);
-				Department department = new Department();
-				department.setId(departmentId);
-				candidateSelected.setDepartment(department);
-			}
-
-			if (provinceSelected != null && provinceSelected.length() > 0) {
-				Integer provinceId = Integer.parseInt(provinceSelected);
-				Province province = new Province();
-				province.setId(provinceId);
-				candidateSelected.setProvince(province);
-			}
-
-			if (districtSelected != null && districtSelected.length() > 0) {
-				Integer districtId = Integer.parseInt(districtSelected);
-				District district = new District();
-				district.setId(districtId);
-				candidateSelected.setDistrict(district);
-			}
-
-			if (recruimentSourceSelected != null && recruimentSourceSelected.length() > 0) {
-				Integer recruimentSourceId = Integer.parseInt(recruimentSourceSelected);
-				RecruimentSource recruimentSource = new RecruimentSource();
-				recruimentSource.setId(recruimentSourceId);
-				candidateSelected.setRecruimentSource(recruimentSource);
-			}
-
-			if (educationLevelSelected != null && educationLevelSelected.length() > 0) {
-				Integer educationLevelId = Integer.parseInt(educationLevelSelected);
-				EducationLevel educationLevel = new EducationLevel();
-				educationLevel.setId(educationLevelId);
-				candidateSelected.setEducationLevel(educationLevel);
-			}
-
-			if (subAreaSelected != null && subAreaSelected.length() > 0) {
-				Integer subAreaId = Integer.parseInt(subAreaSelected);
-				Area subArea = new Area();
-				subArea.setId(subAreaId);
-				candidateSelected.setArea(subArea);
-			}
-
-			if (interviewStateSelected != null && interviewStateSelected.length() > 0
-					&& interviewStateSelected.equals("a")) {
-				candidateSelected.setScheduledAt(scheduledAt);
-			}
-
-			SessionBean session = (SessionBean) FacesContext.getCurrentInstance().getExternalContext().getSessionMap()
-					.get("sessionBean");
-			Integer recruiterId = session.getUser().getId();
-			User recruiter = new User();
-			recruiter.setId(recruiterId);
-			candidateSelected.setRecruiter(recruiter);
-			candidateSelected.setCreatedAt(new Date());
-
-			/*
-			 * CandidateInterface candidateService = (CandidateInterface) new
-			 * InitialContext( Util.getInitProperties())
-			 * .lookup("java:global/RecruitmentEAR/RecruitmentEJB/CandidateBean"
-			 * + "!com.returnsoft.resource.service.CandidateInterface");
-			 * candidateSelected = candidateService.add(candidateSelected);
-			 */
-
-			String confirmMessage = "Se creó satisfactoriamente el candidato con id:" + candidateSelected.getId();
-
-			// CandidateStateDto state = new CandidateStateDto();
-			if (interviewStateSelected != null && interviewStateSelected.length() > 0
-					&& !interviewStateSelected.equals("a")) {
-				Interview interview = new Interview();
-
-				interview.setRecruiter(recruiter);
-				interview.setCandidate(candidateSelected);
-				interview.setCreatedAt(new Date());
-				interview.setInterviewedAt(interviewedAt);
-				InterviewState interviewStateDto = new InterviewState();
-				interviewStateDto.setId(Integer.parseInt(interviewStateSelected));
-				interview.setInterviewState(interviewStateDto);
-
-				/*
-				 * InterviewInterface interviewService = (InterviewInterface)
-				 * new InitialContext( Util.getInitProperties()) .lookup(
-				 * "java:global/RecruitmentEAR/RecruitmentEJB/InterviewBean" +
-				 * "!com.returnsoft.resource.service.InterviewInterface");
-				 * interview = interviewService.add(interview);
-				 */
-
-				confirmMessage += " y entrevista con id:" + interview.getId();
-
-			}
-
-			// SE IMPRIME MENSAJE DE CONFIRMACION
-			FacesMessage msg = new FacesMessage(confirmMessage);
-			msg.setSeverity(FacesMessage.SEVERITY_INFO);
-			FacesContext.getCurrentInstance().addMessage(null, msg);
-
-			return "search_candidate";
-
-		} catch (Exception e) {
-			/*
-			 * if (!(e instanceof RecruitmentException) && !(e instanceof
-			 * SecurityExcepcion)) { e.printStackTrace(); }
-			 */
-			FacesMessage msg = new FacesMessage(e.getMessage());
-			msg.setSeverity(FacesMessage.SEVERITY_ERROR);
-			FacesContext.getCurrentInstance().addMessage(null, msg);
-			return null;
-		}
-	}
-
-	public void beforeEdit(ComponentSystemEvent event) {
-
-		System.out.println(event.toString());
-
-		System.out.println("ingreso a beforeEditCandidate");
-		try {
-
-			// if (!FacesContext.getCurrentInstance().isPostback()) {
-
-			// if (candidateSelected == null || candidateSelected.getId() == 0)
-			// {
-
-			Map<String, String> map = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap();
-			String candidateIdRequest = (String) map.get("candidateId");
-
-			if (candidateIdRequest != null && !candidateIdRequest.equals("")) {
-
-				Integer candidateId = Integer.parseInt(candidateIdRequest);
-
-				/*
-				 * CandidateInterface candidateService = (CandidateInterface)
-				 * new InitialContext( Util.getInitProperties()) .lookup(
-				 * "java:global/RecruitmentEAR/RecruitmentEJB/CandidateBean" +
-				 * "!com.returnsoft.resource.service.CandidateInterface");
-				 * 
-				 * candidateSelected = candidateService.findById(candidateId);
-				 */
-
-				if (areas == null || areas.size() == 0) {
-
-					SessionBean session = (SessionBean) FacesContext.getCurrentInstance().getExternalContext()
-							.getSessionMap().get("sessionBean");
-					Integer recruiterId = session.getUser().getId();
-
-					/*
-					 * AreaInterface areaService = (AreaInterface) new
-					 * InitialContext( Util.getInitProperties()) .lookup(
-					 * "java:global/RecruitmentEAR/RecruitmentEJB/AreaBean" +
-					 * "!com.returnsoft.resource.service.AreaInterface");
-					 * 
-					 * List<AreaDto> areasDto = areaService
-					 * .findAreasByRecruiter(recruiterId);
-					 */
-
-					areas = new ArrayList<SelectItem>();
-					/*
-					 * for (AreaDto areaDto : areasDto) { SelectItem item = new
-					 * SelectItem(); item.setValue(areaDto.getId().toString());
-					 * item.setLabel(areaDto.getName()); areas.add(item); }
-					 */
-				}
-
-				Boolean isSubAreaPermission = Boolean.FALSE;
-				Boolean isAreaPermission = Boolean.FALSE;
-
-				if (candidateSelected.getArea() != null && candidateSelected.getArea().getId() > 0) {
-					if (candidateSelected.getArea().getArea() != null
-							&& candidateSelected.getArea().getArea().getId() > 0) {
-
-						// Boolean isAreaPermission=Boolean.FALSE;
-						for (SelectItem areaItem : areas) {
-							System.out.println("area:" + candidateSelected.getArea().getArea().getId());
-							System.out.println("item:" + areaItem.getValue());
-							if (areaItem.getValue().toString()
-									.equals(candidateSelected.getArea().getArea().getId().toString())) {
-								isAreaPermission = Boolean.TRUE;
-								System.out.println("INGRESO!");
-							}
-						}
-
-						if (isAreaPermission) {
-							areaSelected = candidateSelected.getArea().getArea().getId().toString();
-							searchSubAreas();
-
-							// Boolean isSubAreaPermission=Boolean.FALSE;
-							for (SelectItem subAreaItem : subAreas) {
-								if (subAreaItem.getValue().toString()
-										.equals(candidateSelected.getArea().getId().toString())) {
-									isSubAreaPermission = Boolean.TRUE;
-								}
-							}
-
-							if (isSubAreaPermission) {
-								subAreaSelected = candidateSelected.getArea().getId().toString();
-							} else {
-								// MENSAJE DE ERROR, NO TIENE PERMISOS PARA EL
-								// SUBAREA
-								FacesMessage msg = new FacesMessage(
-										"No tiene permisos para el subarea " + candidateSelected.getArea().getName());
-								msg.setSeverity(FacesMessage.SEVERITY_ERROR);
-								FacesContext.getCurrentInstance().addMessage(null, msg);
-								candidateSelected = null;
-							}
-
-						} else {
-							// MENSAJE DE ERROR, NO TIENE PERMISOS PARA EL AREA
-							FacesMessage msg = new FacesMessage("No tiene permisos para el area "
-									+ candidateSelected.getArea().getArea().getName());
-							msg.setSeverity(FacesMessage.SEVERITY_ERROR);
-							FacesContext.getCurrentInstance().addMessage(null, msg);
-							candidateSelected = null;
-						}
-
-					}
-				}
-
-				if (isSubAreaPermission && isAreaPermission) {
-
-					if (interviewStates == null || interviewStates.size() == 0) {
-						/*
-						 * InterviewStateInterface interviewStateService =
-						 * (InterviewStateInterface) new InitialContext(
-						 * Util.getInitProperties()) .lookup(
-						 * "java:global/RecruitmentEAR/RecruitmentEJB/InterviewStateBean"
-						 * +
-						 * "!com.returnsoft.resource.service.InterviewStateInterface"
-						 * ); List<InterviewStateDto> dtos =
-						 * interviewStateService .findIsPending();
-						 */
-						interviewStates = new ArrayList<SelectItem>();
-						/*
-						 * for (InterviewStateDto dto : dtos) { SelectItem item
-						 * = new SelectItem();
-						 * item.setValue(dto.getId().toString());
-						 * item.setLabel(dto.getName());
-						 * interviewStates.add(item); }
-						 */
-					}
-
-					if (countries == null || countries.size() == 0) {
-						/*
-						 * CountryInterface countryService = (CountryInterface)
-						 * new InitialContext( Util.getInitProperties())
-						 * .lookup(
-						 * "java:global/RecruitmentEAR/RecruitmentEJB/CountryBean"
-						 * +
-						 * "!com.returnsoft.resource.service.CountryInterface");
-						 * List<CountryDto> countriesDto =
-						 * countryService.findAll();
-						 */
-						countries = new ArrayList<SelectItem>();
-						/*
-						 * for (CountryDto countryDto : countriesDto) {
-						 * SelectItem item = new SelectItem();
-						 * item.setValue(countryDto.getId().toString());
-						 * item.setLabel(countryDto.getName());
-						 * countries.add(item); }
-						 */
-					}
-
-					if (recruimentSources == null || recruimentSources.size() == 0) {
-						/*
-						 * RecruimentSourceInterface recruimentSourceService =
-						 * (RecruimentSourceInterface) new InitialContext(
-						 * Util.getInitProperties()) .lookup(
-						 * "java:global/RecruitmentEAR/RecruitmentEJB/RecruimentSourceBean"
-						 * +
-						 * "!com.returnsoft.resource.service.RecruimentSourceInterface"
-						 * ); List<RecruimentSourceDto> recruimentSourcesDto =
-						 * recruimentSourceService .findAll();
-						 */
-						recruimentSources = new ArrayList<SelectItem>();
-						/*
-						 * for (RecruimentSourceDto recruimentSourceDto :
-						 * recruimentSourcesDto) { SelectItem item = new
-						 * SelectItem();
-						 * item.setValue(recruimentSourceDto.getId().toString())
-						 * ; item.setLabel(recruimentSourceDto.getName());
-						 * recruimentSources.add(item); }
-						 */
-					}
-
-					if (educationLevels == null || educationLevels.size() == 0) {
-						/*
-						 * EducationLevelInterface educationLevelService =
-						 * (EducationLevelInterface) new InitialContext(
-						 * Util.getInitProperties()) .lookup(
-						 * "java:global/RecruitmentEAR/RecruitmentEJB/EducationLevelBean"
-						 * +
-						 * "!com.returnsoft.resource.service.EducationLevelInterface"
-						 * ); List<EducationLevelDto> educationLevelsDto =
-						 * educationLevelService .findAll();
-						 */
-						educationLevels = new ArrayList<SelectItem>();
-						/*
-						 * for (EducationLevelDto educationLevelDto :
-						 * educationLevelsDto) { SelectItem item = new
-						 * SelectItem();
-						 * item.setValue(educationLevelDto.getId().toString());
-						 * item.setLabel(educationLevelDto.getName());
-						 * educationLevels.add(item); }
-						 */
-					}
-
-					initialize();
-
-					calculateAge();
-
-					// VERIFICA SI ES AGENDADO
-					if (candidateSelected.getScheduledAt() != null) {
-						isScheduled = Boolean.TRUE;
-						scheduledAt = candidateSelected.getScheduledAt();
-						interviewStateSelected = "a";
-					} else {
-
-						// VERIFICA ENTREVISTA EN PROCESO
-						/*
-						 * InterviewInterface interviewService =
-						 * (InterviewInterface) new InitialContext(
-						 * Util.getInitProperties()) .lookup(
-						 * "java:global/RecruitmentEAR/RecruitmentEJB/InterviewBean"
-						 * +
-						 * "!com.returnsoft.resource.service.InterviewInterface"
-						 * ); List<InterviewDto> interviewsFound =
-						 * interviewService
-						 * .findPendingsByCandidateId(candidateId);
-						 */
-						/*
-						 * if (interviewsFound != null && interviewsFound.size()
-						 * > 0) { isPending = Boolean.TRUE; interviewedAt =
-						 * interviewsFound.get(0) .getInterviewedAt();
-						 * interviewStateSelected = interviewsFound.get(0)
-						 * .getInterviewState().getId().toString(); } else {
-						 * 
-						 * // VERIFICA CAPACITACION EN PROCESO TrainingInterface
-						 * trainingService = (TrainingInterface) new
-						 * InitialContext( Util.getInitProperties()) .lookup(
-						 * "java:global/RecruitmentEAR/RecruitmentEJB/TrainingBean"
-						 * +
-						 * "!com.returnsoft.resource.service.TrainingInterface")
-						 * ; List<TrainingDto> trainingsFound = trainingService
-						 * .findPendingsByCandidateId(candidateId); if
-						 * (trainingsFound != null && trainingsFound.size() > 0)
-						 * { isPending = Boolean.TRUE; trainingAt =
-						 * trainingsFound.get(0) .getTrainingAt();
-						 * 
-						 * TrainingStateInterface trainingStateService =
-						 * (TrainingStateInterface) new InitialContext(
-						 * Util.getInitProperties()) .lookup(
-						 * "java:global/RecruitmentEAR/RecruitmentEJB/TrainingStateBean"
-						 * +
-						 * "!com.returnsoft.resource.service.TrainingStateInterface"
-						 * ); List<TrainingStateDto> dtos = trainingStateService
-						 * .findIsPending(); interviewStates = new
-						 * ArrayList<SelectItem>(); for (TrainingStateDto dto :
-						 * dtos) { SelectItem item = new SelectItem();
-						 * item.setValue(dto.getId().toString());
-						 * item.setLabel(dto.getName());
-						 * interviewStates.add(item); } interviewStateSelected =
-						 * trainingsFound.get(0)
-						 * .getTrainingState().getId().toString();
-						 * 
-						 * } else { // VERIFICA OJT EN PROCESO OjtInterface
-						 * ojtService = (OjtInterface) new InitialContext(
-						 * Util.getInitProperties()) .lookup(
-						 * "java:global/RecruitmentEAR/RecruitmentEJB/OjtBean" +
-						 * "!com.returnsoft.resource.service.OjtInterface");
-						 * List<OjtDto> ojtsFound = ojtService
-						 * .findPendingsByCandidateId(candidateId); if
-						 * (ojtsFound != null && ojtsFound.size() > 0) {
-						 * isPending = Boolean.TRUE; ojtAt =
-						 * ojtsFound.get(0).getOjtAt();
-						 * 
-						 * OjtStateInterface ojtStateService =
-						 * (OjtStateInterface) new InitialContext(
-						 * Util.getInitProperties()) .lookup(
-						 * "java:global/RecruitmentEAR/RecruitmentEJB/OjtStateBean"
-						 * +
-						 * "!com.returnsoft.resource.service.OjtStateInterface")
-						 * ; List<OjtStateDto> dtos = ojtStateService
-						 * .findIsPending(); interviewStates = new
-						 * ArrayList<SelectItem>(); for (OjtStateDto dto : dtos)
-						 * { SelectItem item = new SelectItem();
-						 * item.setValue(dto.getId().toString());
-						 * item.setLabel(dto.getName());
-						 * interviewStates.add(item); } interviewStateSelected =
-						 * ojtsFound.get(0) .getOjtState().getId().toString();
-						 * 
-						 * } }
-						 * 
-						 * }
-						 */
-
-					}
-
-					if (candidateSelected.getCountry() != null && candidateSelected.getCountry().getId() > 0) {
-						// SELECCIONA PAIS
-						System.out.println("countrySelected:" + candidateSelected.getCountry().getId());
-						countrySelected = candidateSelected.getCountry().getId().toString();
-						// BUSCA DEPARTAMENTOS
-						searchDepartments();
-						if (candidateSelected.getDepartment() != null
-								&& candidateSelected.getDepartment().getId() > 0) {
-							// SELECCIONA DEPARTAMENTO
-							departmentSelected = candidateSelected.getDepartment().getId().toString();
-							// BUSCA PROVINCIAS
-							searchProvinces();
-							if (candidateSelected.getProvince() != null
-									&& candidateSelected.getProvince().getId() > 0) {
-
-								// SELECCIONA PROVINCIA
-								provinceSelected = candidateSelected.getProvince().getId().toString();
-								// BUSCA DISTRITOS
-								searchDistricts();
-								if (candidateSelected.getDistrict() != null
-										&& candidateSelected.getDistrict().getId() > 0) {
-									// SELECCIONA DISTRITO
-									districtSelected = candidateSelected.getDistrict().getId().toString();
-								}
-							}
-
-						}
-
-					}
-
-					if (candidateSelected.getRecruimentSource() != null
-							&& candidateSelected.getRecruimentSource().getId() > 0) {
-						recruimentSourceSelected = candidateSelected.getRecruimentSource().getId().toString();
-						onChangeRecruitmentSource();
-					}
-
-					if (candidateSelected.getEducationLevel() != null
-							&& candidateSelected.getEducationLevel().getId() > 0) {
-						educationLevelSelected = candidateSelected.getEducationLevel().getId().toString();
-					}
-				}
-
-				/*
-				 * if (candidateSelected.getArea() != null &&
-				 * candidateSelected.getArea().getId() > 0) { areaSelected =
-				 * candidateSelected.getArea().getArea() .getId().toString();
-				 * searchSubAreas(); subAreaSelected =
-				 * candidateSelected.getArea().getId() .toString(); }
-				 */
-
-			} /*
-				 * else { FacesMessage msg = new FacesMessage(
-				 * "No existe un postulante seleccionado.");
-				 * msg.setSeverity(FacesMessage.SEVERITY_ERROR);
-				 * FacesContext.getCurrentInstance().addMessage(null, msg); }
-				 */
-			// }
-
-		} catch (Exception e) {
-			/*
-			 * if (!(e instanceof RecruitmentException) && !(e instanceof
-			 * SecurityExcepcion)) { e.printStackTrace(); }
-			 */
-			FacesMessage msg = new FacesMessage(e.getMessage(), e.getMessage());
-			msg.setSeverity(FacesMessage.SEVERITY_ERROR);
-			FacesContext.getCurrentInstance().addMessage(null, msg);
-		}
-	}
-
-	public String edit() {
-		try {
-
-			System.out.println("Ingreso a edit candidate");
-
-			if (candidateSelected != null && candidateSelected.getId() > 0) {
-
-				// SE EDITA POSTULANTE
-
-				if (countrySelected != null && countrySelected.length() > 0) {
-					Integer countryId = Integer.parseInt(countrySelected);
-					Country country = new Country();
-					country.setId(countryId);
-					candidateSelected.setCountry(country);
-				}
-
-				if (departmentSelected != null && departmentSelected.length() > 0) {
-					Integer departmentId = Integer.parseInt(departmentSelected);
-					Department department = new Department();
-					department.setId(departmentId);
-					candidateSelected.setDepartment(department);
-				}
-
-				if (provinceSelected != null && provinceSelected.length() > 0) {
-					Integer provinceId = Integer.parseInt(provinceSelected);
-					Province province = new Province();
-					province.setId(provinceId);
-					candidateSelected.setProvince(province);
-				}
-
-				if (districtSelected != null && districtSelected.length() > 0) {
-					Integer districtId = Integer.parseInt(districtSelected);
-					District district = new District();
-					district.setId(districtId);
-					candidateSelected.setDistrict(district);
-				}
-
-				if (recruimentSourceSelected != null && recruimentSourceSelected.length() > 0) {
-					Integer recruimentSourceId = Integer.parseInt(recruimentSourceSelected);
-					RecruimentSource recruimentSource = new RecruimentSource();
-					recruimentSource.setId(recruimentSourceId);
-					candidateSelected.setRecruimentSource(recruimentSource);
-				}
-
-				if (educationLevelSelected != null && educationLevelSelected.length() > 0) {
-					Integer educationLevelId = Integer.parseInt(educationLevelSelected);
-					EducationLevel educationLevel = new EducationLevel();
-					educationLevel.setId(educationLevelId);
-					candidateSelected.setEducationLevel(educationLevel);
-				}
-
-				if (subAreaSelected != null && subAreaSelected.length() > 0) {
-					Integer subAreaId = Integer.parseInt(subAreaSelected);
-					Area subArea = new Area();
-					subArea.setId(subAreaId);
-					candidateSelected.setArea(subArea);
-				}
-
-				// VERIFICA SI ES AGENDADO
-				if (interviewStateSelected != null && interviewStateSelected.length() > 0
-						&& !interviewStateSelected.equals("a")) {
-
-					candidateSelected.setScheduledAt(null);
-
-				} else {
-					candidateSelected.setScheduledAt(scheduledAt);
-
-				}
-
-				/*
-				 * CandidateInterface candidateService = (CandidateInterface)
-				 * new InitialContext( Util.getInitProperties()) .lookup(
-				 * "java:global/RecruitmentEAR/RecruitmentEJB/CandidateBean" +
-				 * "!com.returnsoft.resource.service.CandidateInterface");
-				 * 
-				 * candidateSelected = candidateService.edit(candidateSelected);
-				 */
-
-				String confirmMessage = "Se editó satisfactoriamente el postulante con id:" + candidateSelected.getId();
-
-				// //////////////////////////
-
-				if (interviewStateSelected != null && interviewStateSelected.length() > 0
-						&& !interviewStateSelected.equals("a")) {
-
-					// VERIFICA ENTREVISTA EN PROCESO
-					/*
-					 * InterviewInterface interviewService =
-					 * (InterviewInterface) new InitialContext(
-					 * Util.getInitProperties()) .lookup(
-					 * "java:global/RecruitmentEAR/RecruitmentEJB/InterviewBean"
-					 * + "!com.returnsoft.resource.service.InterviewInterface");
-					 * List<InterviewDto> interviewsFound = interviewService
-					 * .findPendingsByCandidateId(candidateSelected .getId());
-					 */
-
-					/*
-					 * if (interviewsFound == null || interviewsFound.size() ==
-					 * 0) { // VERIFICA CAPACITACION EN PROCESO
-					 * TrainingInterface trainingService = (TrainingInterface)
-					 * new InitialContext( Util.getInitProperties()) .lookup(
-					 * "java:global/RecruitmentEAR/RecruitmentEJB/TrainingBean"
-					 * + "!com.returnsoft.resource.service.TrainingInterface");
-					 * List<TrainingDto> trainingsFound = trainingService
-					 * .findPendingsByCandidateId(candidateSelected .getId());
-					 * if (trainingsFound == null || trainingsFound.size() == 0)
-					 * { // VERIFICA OJT EN PROCESO OjtInterface ojtService =
-					 * (OjtInterface) new InitialContext(
-					 * Util.getInitProperties()) .lookup(
-					 * "java:global/RecruitmentEAR/RecruitmentEJB/OjtBean" +
-					 * "!com.returnsoft.resource.service.OjtInterface");
-					 * List<OjtDto> ojtsFound = ojtService
-					 * .findPendingsByCandidateId(candidateSelected .getId());
-					 * if (ojtsFound == null || ojtsFound.size() == 0) { // SE
-					 * CREA ENTREVISTA InterviewDto interview = new
-					 * InterviewDto(); SessionBean session = (SessionBean)
-					 * FacesContext .getCurrentInstance()
-					 * .getExternalContext().getSessionMap()
-					 * .get("sessionBean"); Integer recruiterId =
-					 * session.getRecruiterId(); RecruiterDto recruiter = new
-					 * RecruiterDto(); recruiter.setId(recruiterId);
-					 * interview.setRecruiter(recruiter);
-					 * interview.setCandidate(candidateSelected);
-					 * interview.setCreatedAt(new Date());
-					 * interview.setInterviewedAt(interviewedAt);
-					 * InterviewStateDto interviewState = new
-					 * InterviewStateDto(); interviewState.setId(Integer
-					 * .parseInt(interviewStateSelected));
-					 * interview.setInterviewState(interviewState);
-					 * 
-					 * 
-					 * interview = interviewService.add(interview);
-					 * 
-					 * confirmMessage += " y se creo entrevista con id:" +
-					 * interview.getId();
-					 * 
-					 * } } }
-					 */
-				}
-
-				// SE IMPRIME MENSAJE DE CONFIRMACION
-				FacesMessage msg = new FacesMessage(confirmMessage);
-				msg.setSeverity(FacesMessage.SEVERITY_INFO);
-				FacesContext.getCurrentInstance().addMessage(null, msg);
-
-			} else {
-				// SE IMPRIME MENSAJE DE CONFIRMACION
-				FacesMessage msg = new FacesMessage("Seleccione un postulante.");
-				msg.setSeverity(FacesMessage.SEVERITY_WARN);
-				FacesContext.getCurrentInstance().addMessage(null, msg);
-			}
-			return "search_candidate";
-
-		} catch (Exception e) {
-			/*
-			 * if (!(e instanceof RecruitmentException) && !(e instanceof
-			 * SecurityExcepcion)) { e.printStackTrace(); }
-			 */
-			FacesMessage msg = new FacesMessage(e.getMessage(), e.getMessage());
-			msg.setSeverity(FacesMessage.SEVERITY_ERROR);
-			FacesContext.getCurrentInstance().addMessage(null, msg);
-			return null;
-		}
-	}
 
 	public void onChangeState() {
 		try {
+			
+			if (sessionBean == null || sessionBean.getUser() == null || sessionBean.getUser().getId() == null) {
+				throw new UserLoggedNotFoundException();
+			}
 
-			System.out.println("ingreso a onChangeState");
-			System.out.println(interviewStateSelected);
+			//System.out.println("ingreso a onChangeState");
+			//System.out.println(interviewStateSelected);
 			if (interviewStateSelected != null && !interviewStateSelected.equals("")) {
 
 				if (interviewStateSelected.equals("a")) {
@@ -1433,21 +532,21 @@ public class SearchCandidateController implements Serializable {
 			}
 
 		} catch (Exception e) {
-			/*
-			 * if (!(e instanceof RecruitmentException) && !(e instanceof
-			 * SecurityExcepcion)) { e.printStackTrace(); }
-			 */
-			FacesMessage msg = new FacesMessage(e.getMessage(), e.getMessage());
-			msg.setSeverity(FacesMessage.SEVERITY_ERROR);
-			FacesContext.getCurrentInstance().addMessage(null, msg);
+			e.printStackTrace();
+			facesUtil.sendErrorMessage(e.getMessage());
 		}
 	}
 
 	public void onChangeRecruitmentSource() {
 		try {
+			
+			if (sessionBean == null || sessionBean.getUser() == null || sessionBean.getUser().getId() == null) {
+				throw new UserLoggedNotFoundException();
+			}
+			
 
-			System.out.println("ingreso a onChangeRecruitmentSource");
-			System.out.println(recruimentSourceSelected);
+			//System.out.println("ingreso a onChangeRecruitmentSource");
+			//System.out.println(recruimentSourceSelected);
 
 			Integer recruitmentSourceId = Integer.parseInt(recruimentSourceSelected);
 
@@ -1480,15 +579,28 @@ public class SearchCandidateController implements Serializable {
 			 */
 
 		} catch (Exception e) {
-			/*
-			 * if (!(e instanceof RecruitmentException) && !(e instanceof
-			 * SecurityExcepcion)) { e.printStackTrace(); }
-			 */
-			FacesMessage msg = new FacesMessage(e.getMessage(), e.getMessage());
-			msg.setSeverity(FacesMessage.SEVERITY_ERROR);
-			FacesContext.getCurrentInstance().addMessage(null, msg);
+			e.printStackTrace();
+			facesUtil.sendErrorMessage(e.getMessage());
 		}
 	}
+	
+	public void showInterviews() {
+
+		try {
+			
+			if (sessionBean == null || sessionBean.getUser() == null || sessionBean.getUser().getId() < 1) {
+				throw new UserLoggedNotFoundException();
+			}
+
+			interviews = interviewService.findByCandidate(candidateSelected.getId());
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			facesUtil.sendErrorMessage(e.getClass().getSimpleName(), e.getMessage());
+		}
+
+	}
+	
 
 	public List<SelectItem> getCountries() {
 		return countries;
@@ -1554,11 +666,13 @@ public class SearchCandidateController implements Serializable {
 		this.recruimentSourceSelected = recruimentSourceSelected;
 	}
 
-	public List<Candidate> getCandidates() {
+	
+
+	public LazyDataModel<Candidate> getCandidates() {
 		return candidates;
 	}
 
-	public void setCandidates(List<Candidate> candidates) {
+	public void setCandidates(LazyDataModel<Candidate> candidates) {
 		this.candidates = candidates;
 	}
 
@@ -1858,5 +972,15 @@ public class SearchCandidateController implements Serializable {
 	public void setCreatedAtSearch(Date createdAtSearch) {
 		this.createdAtSearch = createdAtSearch;
 	}
+
+	public List<Interview> getInterviews() {
+		return interviews;
+	}
+
+	public void setInterviews(List<Interview> interviews) {
+		this.interviews = interviews;
+	}
+	
+	
 
 }

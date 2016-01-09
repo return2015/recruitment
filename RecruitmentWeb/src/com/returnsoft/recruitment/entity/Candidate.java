@@ -5,11 +5,13 @@ import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -25,7 +27,8 @@ public class Candidate implements Serializable {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Integer id;
+	@Column(name = "id")
+	private Long id;
 
 	@Column(name = "document_type")
 	private String documentType;
@@ -33,12 +36,16 @@ public class Candidate implements Serializable {
 	@Column(name = "document_number")
 	private String documentNumber;
 
+	@Column(name = "firstname")
 	private String firstname;
 
+	@Column(name = "lastname")
 	private String lastname;
 
+	@Column(name = "mail")
 	private String mail;
 
+	@Column(name = "phone")
 	private String phone;
 
 	@Column(name = "cell_phone")
@@ -51,46 +58,42 @@ public class Candidate implements Serializable {
 	@Column(name = "entry_type")
 	private String entryType;
 
+	@Column(name = "experience")
 	private String experience;
 
-	@Temporal(TemporalType.TIMESTAMP)
-	@Column(name = "created_at")
-	private Date createdAt;
+	
 
-	@Temporal(TemporalType.TIMESTAMP)
-	@Column(name = "scheduled_at")
-	private Date scheduledAt;
+	/*@ManyToOne
+	@JoinColumn(name = "area_id")
+	private Area area;*/
 
-	@ManyToOne
-	private Area area;
-
-	@ManyToOne
+	/*@ManyToOne
 	@JoinColumn(name = "candidate_state_id")
-	private CandidateState candidateState;
+	private CandidateState candidateState;*/
 
 	@ManyToOne
-	@JoinColumn(name = "recruiter_id")
-	private User recruiter;
-
-	@ManyToOne
+	@JoinColumn(name = "country_id")
 	private Country country;
 
 	// bi-directional many-to-one association to District
 	@ManyToOne
+	@JoinColumn(name = "department_id")
 	private Department department;
 
 	// bi-directional many-to-one association to District
 	@ManyToOne
+	@JoinColumn(name = "district_id")
 	private District district;
 
 	// bi-directional many-to-one association to Province
 	@ManyToOne
+	@JoinColumn(name = "province_id")
 	private Province province;
 
 	// bi-directional many-to-one association to RecruimentSource
-	@ManyToOne
+	/*@ManyToOne
 	@JoinColumn(name = "recruiment_source_id")
-	private RecruimentSource recruimentSource;
+	private RecruimentSource recruimentSource;*/
 
 	// bi-directional many-to-one association to RecruimentSource
 	@ManyToOne
@@ -103,7 +106,7 @@ public class Candidate implements Serializable {
 	@Column(name = "last_job")
 	private String lastJob;
 	
-	@Column(name = "agent_name")
+	/*@Column(name = "agent_name")
 	private String agentName;
 	
 	@Column(name = "agent_document_number")
@@ -113,18 +116,46 @@ public class Candidate implements Serializable {
 	private String agentCampaign;
 	
 	@Column(name = "job_fair_name")
-	private String jobFairName;
+	private String jobFairName;*/
+	
+	
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "created_at")
+	private Date createdAt;
+	
+	@ManyToOne
+	@JoinColumn(name = "created_by")
+	private User createdBy;
+
+	/*@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "scheduled_at")
+	private Date scheduledAt;*/
+	
+	/*@ManyToOne
+	@JoinColumn(name = "scheduled_by")
+	private User scheduledBy;*/
+	
+	@OneToOne(fetch=FetchType.LAZY)
+	@JoinColumn(name = "interview_id")
+	private Interview interview;
+	
 
 	public Candidate() {
 	}
 
-	public Integer getId() {
-		return this.id;
+	
+
+	public Long getId() {
+		return id;
 	}
 
-	public void setId(Integer id) {
+
+
+	public void setId(Long id) {
 		this.id = id;
 	}
+
+
 
 	public Date getBornDate() {
 		return this.bornDate;
@@ -214,13 +245,7 @@ public class Candidate implements Serializable {
 		this.country = country;
 	}
 
-	public Area getArea() {
-		return area;
-	}
-
-	public void setArea(Area area) {
-		this.area = area;
-	}
+	
 
 	public District getDistrict() {
 		return this.district;
@@ -238,23 +263,17 @@ public class Candidate implements Serializable {
 		this.province = province;
 	}
 
-	public RecruimentSource getRecruimentSource() {
-		return this.recruimentSource;
+	
+
+	public User getCreatedBy() {
+		return createdBy;
 	}
 
-	public void setRecruimentSource(RecruimentSource recruimentSource) {
-		this.recruimentSource = recruimentSource;
+	public void setCreatedBy(User createdBy) {
+		this.createdBy = createdBy;
 	}
 
 	
-
-	public User getRecruiter() {
-		return recruiter;
-	}
-
-	public void setRecruiter(User recruiter) {
-		this.recruiter = recruiter;
-	}
 
 	public Date getCreatedAt() {
 		return createdAt;
@@ -272,21 +291,6 @@ public class Candidate implements Serializable {
 		this.department = department;
 	}
 
-	public Date getScheduledAt() {
-		return scheduledAt;
-	}
-
-	public void setScheduledAt(Date scheduledAt) {
-		this.scheduledAt = scheduledAt;
-	}
-
-	public CandidateState getCandidateState() {
-		return candidateState;
-	}
-
-	public void setCandidateState(CandidateState candidateState) {
-		this.candidateState = candidateState;
-	}
 
 	public EducationLevel getEducationLevel() {
 		return educationLevel;
@@ -312,36 +316,13 @@ public class Candidate implements Serializable {
 		this.lastJob = lastJob;
 	}
 
-	public String getAgentName() {
-		return agentName;
+	
+	public Interview getInterview() {
+		return interview;
 	}
 
-	public void setAgentName(String agentName) {
-		this.agentName = agentName;
-	}
-
-	public String getAgentDocumentNumber() {
-		return agentDocumentNumber;
-	}
-
-	public void setAgentDocumentNumber(String agentDocumentNumber) {
-		this.agentDocumentNumber = agentDocumentNumber;
-	}
-
-	public String getAgentCampaign() {
-		return agentCampaign;
-	}
-
-	public void setAgentCampaign(String agentCampaign) {
-		this.agentCampaign = agentCampaign;
-	}
-
-	public String getJobFairName() {
-		return jobFairName;
-	}
-
-	public void setJobFairName(String jobFairName) {
-		this.jobFairName = jobFairName;
+	public void setInterview(Interview interview) {
+		this.interview = interview;
 	}
 	
 	

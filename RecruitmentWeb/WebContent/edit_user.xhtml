@@ -1,0 +1,161 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+
+
+<f:metadata>
+	<f:viewAction action="#{editUserController.initialize}" />
+</f:metadata>
+
+<h:head>
+	<h:outputStylesheet library="css" name="facesUtil.css" />
+</h:head>
+
+<h:body>
+
+	<div class="title ui-widget-header ui-corner-all">
+		<h:panelGrid style="margin:auto;">
+		EDITAR USUARIO
+		</h:panelGrid>
+
+	</div>
+	
+	<div>
+
+	<h:panelGrid style="margin:auto;text-align:center;">
+		<p:messages id="messages"></p:messages>
+	</h:panelGrid>
+
+	<h:form id="form">
+
+
+		<h:panelGrid columns="3" style="margin:auto;width:100%;"
+			rowClasses="panelgrid_center_row">
+
+
+			<h:panelGrid rowClasses="panelgrid_center_row">
+
+				<p:fieldset legend="DATOS DE USUARIO">
+
+					<h:panelGrid columns="2" rowClasses="panelgrid_center_row">
+						<h:panelGrid columns="2">
+							<p:outputLabel value="Nombres"></p:outputLabel>
+							<p:inputText value="#{editUserController.userSelected.firstname}"
+								style="width:100px;"></p:inputText>
+
+							<p:outputLabel value="Apellidos"></p:outputLabel>
+							<p:inputText value="#{editUserController.userSelected.lastname}"
+								style="width:100px;"></p:inputText>
+
+							<p:outputLabel value="Tipo"></p:outputLabel>
+							<p:selectOneMenu value="#{editUserController.userTypeSelected}"
+								required="true" requiredMessage="Debe seleccionar tipo">
+								<f:selectItems value="#{editUserController.userTypes}"></f:selectItems>
+							</p:selectOneMenu>
+						</h:panelGrid>
+
+						<h:panelGrid columns="2">
+							<p:outputLabel value="Usuario"></p:outputLabel>
+							<p:inputText value="#{editUserController.userSelected.username}"
+								style="width:80px;" required="true"
+								requiredMessage="Debe ingresar usuario"></p:inputText>
+
+							<p:outputLabel value="Clave"></p:outputLabel>
+							<p:inputText value="#{editUserController.userSelected.password}"
+								required="true" requiredMessage="Debe ingresar clave"
+								style="width:80px;"></p:inputText>
+
+						</h:panelGrid>
+
+
+					</h:panelGrid>
+
+
+				</p:fieldset>
+
+				<h:panelGrid style="margin:auto;text-align:center;">
+					<p:commandButton actionListener="#{editUserController.edit}"
+						value="Editar Usuario" update="@form :messages">
+					</p:commandButton>
+				</h:panelGrid>
+
+			</h:panelGrid>
+
+
+
+			<p:fieldset legend="AGREGAR SUB AREAS">
+				<h:panelGrid>
+					<h:panelGrid columns="2" style="margin:auto;">
+						<p:outputLabel value="Area"></p:outputLabel>
+						<p:selectOneMenu id="areas"
+							value="#{editUserController.areaSelected}">
+							<f:selectItem itemValue="" itemLabel="Seleccione..."></f:selectItem>
+							<f:selectItems value="#{editUserController.areas}"></f:selectItems>
+							<p:ajax listener="#{editUserController.searchSubAreas}"
+								update=":form:subAreas :messages"></p:ajax>
+						</p:selectOneMenu>
+						<p:outputLabel value="Sub Area"></p:outputLabel>
+						<p:selectManyMenu id="subAreas" scrollHeight="100"
+							value="#{editUserController.subAreasSelected}">
+							<f:selectItems value="#{editUserController.subAreas}"></f:selectItems>
+						</p:selectManyMenu>
+
+					</h:panelGrid>
+
+					<h:panelGrid style="margin:auto;text-align:center;">
+						<p:commandButton process="@this :form:areas :form:subAreas"
+							actionListener="#{editUserController.addArea}"
+							value="Agregar Sub Area"
+							update=":form:areasTable :form:areas :form:subAreas :messages">
+						</p:commandButton>
+					</h:panelGrid>
+
+
+				</h:panelGrid>
+			</p:fieldset>
+
+			<p:fieldset legend="SUB AREAS">
+				<h:panelGrid>
+
+					<p:dataTable id="areasTable" style="width:340px;" paginator="true" rows="5"
+						value="#{editUserController.userSelected.areas}" var="a"
+						paginatorTemplate="{FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink}"
+				currentPageReportTemplate="(Entries: {startRecord} - {endRecord} of {totalRecords}, Page: {currentPage}/{totalPages})">
+						<f:facet name="header">
+							<h:outputText value="Sub Areas"></h:outputText>
+						</f:facet>
+
+						<p:column headerText="Nombre">
+							<h:outputText value="#{a.name}"></h:outputText>
+						</p:column>
+
+						<p:column>
+							<p:commandButton process=":form:areasTable"
+								update=":form:areasTable :messages" value="Eliminar"
+								actionListener="#{editUserController.deleteArea(a)}">
+							</p:commandButton>
+						</p:column>
+
+					</p:dataTable>
+
+				</h:panelGrid>
+			</p:fieldset>
+
+
+
+
+
+		</h:panelGrid>
+
+
+
+	</h:form>
+</div>
+</h:body>
+
+</html>

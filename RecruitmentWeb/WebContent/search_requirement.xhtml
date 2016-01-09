@@ -1,0 +1,157 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+
+<ui:composition template="/templates/BasicTemplate.xhtml">
+
+	<ui:define name="metadata">
+		<f:metadata>
+			<f:viewAction action="#{searchRequirementController.initialize}" />
+		</f:metadata>
+	</ui:define>
+
+	<ui:define name="content">
+
+		<div class="title ui-widget-header ui-corner-all">
+			<h:panelGrid style="margin:auto;">
+		BUSCAR REQUERIMIENTOS
+		</h:panelGrid>
+
+		</div>
+
+		<h:panelGrid style="margin:auto;text-align:center;">
+			<p:messages id="messages"></p:messages>
+		</h:panelGrid>
+
+		<h:form id="form">
+			<h:panelGrid style="margin:auto;">
+
+				<h:panelGrid columns="8">
+
+					<p:outputLabel value="Area"></p:outputLabel>
+					<p:selectOneMenu id="areas"
+						value="#{searchRequirementController.areaSelected}">
+						<f:selectItem itemValue="" itemLabel="Seleccione..."></f:selectItem>
+						<f:selectItems value="#{searchRequirementController.areas}"></f:selectItems>
+						<p:ajax listener="#{searchRequirementController.searchSubAreas}"
+							update=":form:subAreas :messages"></p:ajax>
+					</p:selectOneMenu>
+
+					<p:outputLabel value="Subarea"></p:outputLabel>
+					<p:selectOneMenu id="subAreas"
+						value="#{searchRequirementController.subAreaSelected}">
+						<f:selectItem itemValue="" itemLabel="Seleccione..."></f:selectItem>
+						<f:selectItems value="#{searchRequirementController.subAreas}"></f:selectItems>
+					</p:selectOneMenu>
+
+					<p:outputLabel value="Reclutador"></p:outputLabel>
+					<p:selectOneMenu id="recruitments"
+						value="#{searchRequirementController.recruiterSelected}">
+						<f:selectItem itemValue="" itemLabel="Seleccione..."></f:selectItem>
+						<f:selectItems value="#{searchRequirementController.recruiters}"></f:selectItems>
+					</p:selectOneMenu>
+
+
+					<p:outputLabel value="Periodo"></p:outputLabel>
+					<p:calendar value="#{searchRequirementController.period}"
+						pattern="MM/yyyy"></p:calendar>
+
+
+				</h:panelGrid>
+				<h:panelGrid style="margin:auto;text-align:center;">
+					<p:commandButton icon="ui-icon-search"
+						actionListener="#{searchRequirementController.search}" value="Buscar"
+						process="@form"
+						update=":form:searchTable :messages">
+					</p:commandButton>
+				</h:panelGrid>
+			</h:panelGrid>
+
+
+			<h:panelGrid columns="3">
+				<p:commandButton icon="ui-icon-plus" value="Agregar"
+					action="add_requirement?faces-redirect=true">
+				</p:commandButton>
+
+				<p:commandButton id="editButtom" action="edit_requirement.xhtml"
+					icon="ui-icon-pencil" value="Editar" escape="false" ajax="false"
+					disabled="#{searchRequirementController.requirementSelected==null}">
+					<f:param name="requirementId"
+						value="#{searchRequirementController.requirementSelected.id}"></f:param>
+				</p:commandButton>
+				<p:outputLabel id="requirementId"
+					value="Requerimiento seleccionado: #{searchRequirementController.requirementSelected!=null?searchRequirementController.requirementSelected.id:''}">
+				</p:outputLabel>
+			</h:panelGrid>
+
+			<p:dataTable value="#{searchRequirementController.requirements}" var="r"
+				rowKey="#{r.id}" paginator="true" rows="10" id="searchTable"
+				selectionMode="single"
+				selection="#{searchRequirementController.requirementSelected}">
+				<p:ajax event="rowSelect"
+					update=":form:requirementId :form:editButtom" />
+				<p:ajax event="rowUnselect"
+					update=":form:requirementId :form:editButtom" />
+
+				<p:column headerText="Id" sortBy="#{r.id}">
+					<h:outputText value="#{r.id}"></h:outputText>
+				</p:column>
+
+				<p:column headerText="Periodo" sortBy="#{r.period}">
+					<h:outputText value="#{r.period}">
+						<f:convertDateTime pattern="MMMM yyyy" />
+					</h:outputText>
+				</p:column>
+
+
+
+				<p:column headerText="Servicio" sortBy="#{r.area.area.name}">
+					<h:outputText value="#{r.area.area.name}"></h:outputText>
+				</p:column>
+
+				<p:column headerText="SubServicio" sortBy="#{r.area.name}">
+					<h:outputText value="#{r.area.name}"></h:outputText>
+				</p:column>
+
+				<p:column headerText="Reclutador"
+					sortBy="#{r.recruiter.firstname} #{r.recruiter.lastname}">
+					<h:outputText
+						value="#{r.recruiter.firstname} #{r.recruiter.lastname}"></h:outputText>
+				</p:column>
+
+				<p:column headerText="Personal requerido" sortBy="#{r.amount}">
+					<h:outputText value="#{r.amount}"></h:outputText>
+				</p:column>
+
+				<p:column headerText="Inicio capacitacion"
+					sortBy="#{r.startTraining}">
+					<h:outputText value="#{r.startTraining}">
+						<f:convertDateTime pattern="dd-MM-yyyy" />
+					</h:outputText>
+				</p:column>
+
+				<p:column headerText="Fin capacitacion" sortBy="#{r.endTraining}">
+					<h:outputText value="#{r.endTraining}">
+						<f:convertDateTime pattern="dd-MM-yyyy" />
+					</h:outputText>
+				</p:column>
+
+				<p:column headerText="Inicio OJT" sortBy="#{r.startOjt}">
+					<h:outputText value="#{r.startOjt}">
+						<f:convertDateTime pattern="dd-MM-yyyy" />
+					</h:outputText>
+				</p:column>
+
+			</p:dataTable>
+
+
+		</h:form>
+	</ui:define>
+
+</ui:composition>
+</html>

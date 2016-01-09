@@ -1,0 +1,104 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+
+<ui:composition template="/WEB-INF/templates/BasicTemplate.xhtml">
+
+	<ui:define name="content">
+		<f:event type="preRenderView"
+			listener="#{requirementController.beforeEdit}" />
+		<div class="title ui-widget-header ui-corner-all">
+			<h:panelGrid style="margin:auto;">
+		EDITAR REQUERIMIENTO
+		</h:panelGrid>
+
+		</div>
+		<h:form id="formEdit">
+			<h:panelGrid style="margin:auto;">
+
+				<h:panelGrid style="margin:auto;text-align:center;">
+					<p:messages id="messages"></p:messages>
+				</h:panelGrid>
+
+				<h:panelGrid columns="4">
+
+					
+					
+					<p:outputLabel value="Inicio de capacitacion"></p:outputLabel>
+					<p:calendar  
+						value="#{requirementController.requirementSelected.startTraining}"
+						pattern="dd-MM-yyyy" required="true"
+						requiredMessage="Debe seleccionar inicio de capacitacion.">
+					</p:calendar>
+					
+					<p:outputLabel value="Fin de capacitacion"></p:outputLabel>
+					<p:calendar  
+						value="#{requirementController.requirementSelected.endTraining}"
+						pattern="dd-MM-yyyy" required="true"
+						requiredMessage="Debe seleccionar fin de capacitacion.">
+					</p:calendar>
+					
+					<p:outputLabel value="Periodo"></p:outputLabel>
+					<p:calendar  
+						value="#{requirementController.requirementSelected.period}"
+						pattern="dd-MM-yyyy" required="true"
+						requiredMessage="Debe seleccionar periodo.">
+					</p:calendar>
+					
+					<p:outputLabel value="Inicio de OJT"></p:outputLabel>
+					<p:calendar  
+						value="#{requirementController.requirementSelected.startOjt}"
+						pattern="dd-MM-yyyy" required="true"
+						requiredMessage="Debe seleccionar inicio de OJT.">
+					</p:calendar>
+					
+					<p:outputLabel value="Area"></p:outputLabel>
+					<p:selectOneMenu id="areas"
+						value="#{requirementController.areaSelected}">
+						<f:selectItem itemValue="" itemLabel="Seleccione..."></f:selectItem>
+						<f:selectItems value="#{requirementController.areas}"></f:selectItems>
+						<p:ajax listener="#{requirementController.searchSubAreas}"
+							update=":formEdit:subAreas :formEdit:messages"></p:ajax>
+					</p:selectOneMenu>
+					
+
+					<p:outputLabel value="SubArea"></p:outputLabel>
+					<p:selectOneMenu id="subAreas" required="true" tabindex="18"
+						requiredMessage="Debe seleccionar: Subarea."
+						value="#{requirementController.subAreaSelected}">
+						<f:selectItem itemValue="" itemLabel="Seleccione"></f:selectItem>
+						<f:selectItems value="#{requirementController.subAreas}"></f:selectItems>
+					</p:selectOneMenu>
+					
+					<p:outputLabel value="Reclutador"></p:outputLabel>
+					<p:selectOneMenu id="recruitments"
+						value="#{requirementController.recruiterSelected}"
+						required="true" requiredMessage="Debe seleccionar reclutador">
+						<f:selectItem itemValue="" itemLabel="Seleccione..."></f:selectItem>
+						<f:selectItems value="#{requirementController.recruiters}"></f:selectItems>
+					</p:selectOneMenu>
+					
+					<p:outputLabel value="Cantidad" />
+        			<p:spinner value="#{requirementController.requirementSelected.amount}"
+        			required="true" requiredMessage="Debe ingresar cantidad" />
+
+				</h:panelGrid>
+
+
+
+				<h:panelGrid style="margin:auto;text-align:center;">
+					<p:commandButton action="#{requirementController.add}"
+						value="Editar" ajax="false" tabindex="24">
+					</p:commandButton>
+				</h:panelGrid>
+			</h:panelGrid>
+		</h:form>
+	</ui:define>
+
+</ui:composition>
+</html>
