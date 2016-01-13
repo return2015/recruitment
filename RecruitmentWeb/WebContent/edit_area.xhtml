@@ -1,0 +1,70 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+
+
+<f:metadata>
+	<f:viewAction action="#{editAreaController.initialize}" />
+</f:metadata>
+
+<h:head>
+	<h:outputStylesheet library="css" name="facesUtil.css" />
+</h:head>
+
+<h:body>
+
+	<div class="title ui-widget-header ui-corner-all">
+		<h:panelGrid style="margin:auto;">
+		EDITAR AREA
+		</h:panelGrid>
+
+	</div>
+
+	<div>
+
+		<h:panelGrid style="margin:auto;text-align:center;">
+			<p:messages id="messages"></p:messages>
+		</h:panelGrid>
+
+		<h:form id="form">
+
+
+			<h:panelGrid rowClasses="panelgrid_center_row">
+
+
+				<h:panelGrid columns="2">
+					<p:outputLabel value="Nombres"></p:outputLabel>
+					<p:inputText value="#{editAreaController.entitySelected.name}"
+						style="width:100px;"></p:inputText>
+
+					<p:outputLabel value="Estado"></p:outputLabel>
+					<p:selectOneMenu value="#{editAreaController.stateSelected}"
+						required="true" requiredMessage="Debe seleccionar tipo">
+						<f:selectItem itemLabel="Activo" value="1"></f:selectItem>
+						<f:selectItem itemLabel="Inactivo" value="0"></f:selectItem>
+					</p:selectOneMenu>
+
+				</h:panelGrid>
+
+
+
+				<h:panelGrid style="margin:auto;text-align:center;">
+					<p:commandButton actionListener="#{editAreaController.edit}"
+						value="Editar Usuario" update="@form :messages">
+					</p:commandButton>
+				</h:panelGrid>
+
+			</h:panelGrid>
+
+
+
+		</h:form>
+	</div>
+</h:body>
+
+</html>

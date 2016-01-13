@@ -8,6 +8,8 @@ import com.returnsoft.recruitment.exception.ServiceException;
 
 public interface AreaService {
 	
+	public void add(Area area) throws ServiceException;
+	
 	public Area findById(Integer areaId) throws ServiceException;
 	
 	public List<Area> findAreasParent() throws ServiceException;

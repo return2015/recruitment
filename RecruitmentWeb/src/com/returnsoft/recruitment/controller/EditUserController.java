@@ -3,8 +3,6 @@ package com.returnsoft.recruitment.controller;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import javax.ejb.EJB;
 import javax.faces.bean.ManagedBean;
@@ -12,8 +10,6 @@ import javax.faces.bean.ViewScoped;
 import javax.faces.context.FacesContext;
 import javax.faces.model.SelectItem;
 import javax.inject.Inject;
-
-import org.primefaces.context.RequestContext;
 
 import com.returnsoft.recruitment.entity.Area;
 import com.returnsoft.recruitment.entity.User;

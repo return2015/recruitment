@@ -17,11 +17,39 @@ public class AreaEao {
 	@PersistenceContext
 	private EntityManager em;
 	
+	public void add(Area area) throws EaoException {
+		try {
+			
+			em.persist(area);
+			em.flush();
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new EaoException(e.getMessage());
+		}
+	}
+	
 	public Area findById(Integer areaId) throws EaoException {
 		try {
 			Area area = em.find(Area.class, areaId);
 			
 			return area;
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new EaoException(e.getMessage());
+		}
+	}
+	
+	public List<Area> findAreasParentActive() throws EaoException {
+		try {
+			
+			String query = "SELECT a FROM Area a left join a.area ac where a.isActive=1 and ac.id is null";
+			TypedQuery<Area> q = em.createQuery(query, Area.class);
+
+			List<Area> areas = q.getResultList();
+
+			return areas;
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -38,6 +66,23 @@ public class AreaEao {
 
 			List<Area> areas = q.getResultList();
 
+			return areas;
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new EaoException(e.getMessage());
+		}
+	}
+	
+	
+	public List<Area> findAreasChildActive(Integer areaId) throws EaoException {
+		try {
+			
+			String query = "SELECT a FROM Area a left join a.area ac where a.isActive=1 and ac.id = :areaId";
+			TypedQuery<Area> q = em.createQuery(query, Area.class);
+			q.setParameter("areaId", areaId);
+			List<Area> areas = q.getResultList();
+			
 			return areas;
 			
 		} catch (Exception e) {
@@ -69,7 +114,7 @@ public class AreaEao {
 					
 					"SELECT a FROM Area a "
 					+"left join a.recruiters r "
-					+"where r.id=:recruiterId and a.area is null";
+					+"where r.id=:recruiterId and a.area is null and a.isActive=1";
 			
 			TypedQuery<Area> q = em.createQuery(query, Area.class);
 			q.setParameter("recruiterId", recruiterId);
@@ -89,7 +134,7 @@ public class AreaEao {
 					"SELECT a FROM Area a "
 					+"left join a.recruiters r "
 					+"left join a.area sa "
-					+"where r.id=:recruiterId and sa.id=:areaId";
+					+"where r.id=:recruiterId and sa.id=:areaId and a.isActive=1";
 			
 			TypedQuery<Area> q = em.createQuery(query, Area.class);
 			q.setParameter("recruiterId", recruiterId);

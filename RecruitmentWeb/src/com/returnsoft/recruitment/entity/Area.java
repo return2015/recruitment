@@ -43,6 +43,9 @@ public class Area implements Serializable{
 	@ManyToMany(mappedBy = "areas")
 	private List<User> recruiters;
 	
+	@Column(name = "is_active")
+	private Boolean isActive;
+	
 	/*@ManyToMany(mappedBy = "subAreas")
 	private Set<Recruiter> subRecruiters;*/
 	
@@ -89,6 +92,14 @@ public class Area implements Serializable{
 
 	public void setRecruiters(List<User> recruiters) {
 		this.recruiters = recruiters;
+	}
+
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
 	}
 
 	
