@@ -11,6 +11,8 @@ import javax.faces.context.FacesContext;
 import javax.faces.model.SelectItem;
 import javax.inject.Inject;
 
+import org.primefaces.context.RequestContext;
+
 import com.returnsoft.recruitment.entity.Area;
 import com.returnsoft.recruitment.entity.User;
 import com.returnsoft.recruitment.enumeration.UserTypeEnum;
@@ -52,9 +54,6 @@ public class EditUserController implements Serializable {
 	private UserService userService;
 	
 	
-	
-	
-	
 	public String initialize() {
 		try {
 
@@ -83,7 +82,7 @@ public class EditUserController implements Serializable {
 			
 			//////////
 
-			List<Area> areasDto = areaService.findAreasParent();
+			List<Area> areasDto = areaService.findAreasParentActive();
 
 			areas = new ArrayList<SelectItem>();
 			for (Area areaDto : areasDto) {
@@ -129,7 +128,7 @@ public class EditUserController implements Serializable {
 
 				Integer areaId = Integer.parseInt(areaSelected);
 
-				List<Area> areasEntity = areaService.findAreasChild(areaId);
+				List<Area> areasEntity = areaService.findAreasChildActive(areaId);
 				subAreas = new ArrayList<SelectItem>();
 				for (Area areaDto : areasEntity) {
 					SelectItem item = new SelectItem();
@@ -160,10 +159,11 @@ public class EditUserController implements Serializable {
 			if (userTypeSelected != null && userTypeSelected.length() > 0) {
 				UserTypeEnum userType = UserTypeEnum.findById(Short.parseShort(userTypeSelected));
 				userSelected.setUserType(userType);
-				userSelected.setIsActive(Boolean.TRUE);
+				
 				userSelected = userService.edit(userSelected);
+				
 				facesUtil.sendConfirmMessage("Se editó satisfactoriamente");
-				//RequestContext.getCurrentInstance().closeDialog(userSelected);
+				RequestContext.getCurrentInstance().closeDialog(userSelected);
 
 			} else {
 				facesUtil.sendErrorMessage("Debe seleccionar tipo de usuario");

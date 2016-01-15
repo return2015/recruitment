@@ -1,13 +1,17 @@
 package com.returnsoft.recruitment.service.impl;
 
-import java.util.Date;
 import java.util.List;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 
 import com.returnsoft.recruitment.eao.RequirementEao;
+import com.returnsoft.recruitment.eao.RequirementUserEao;
 import com.returnsoft.recruitment.entity.Requirement;
+import com.returnsoft.recruitment.entity.RequirementUser;
+import com.returnsoft.recruitment.enumeration.MonthEnum;
+import com.returnsoft.recruitment.enumeration.YearEnum;
+import com.returnsoft.recruitment.exception.RequirementNotFoundException;
 import com.returnsoft.recruitment.exception.ServiceException;
 import com.returnsoft.recruitment.service.RequirementService;
 
@@ -22,13 +26,27 @@ public class RequirementServiceImpl implements RequirementService {
 	@EJB
 	private RequirementEao requirementEao;
 	
+	@EJB
+	private RequirementUserEao requirementUserEao;
+	
 	
     @Override
-    public List<Requirement> findList(Date period,Integer areaId, Integer subAreaId, Integer recruiterId){
+    public List<Requirement> findList(YearEnum periodYear, MonthEnum periodMonth,Integer areaId, Integer subAreaId, Integer recruiterId) throws ServiceException{
     	
-    	List<Requirement> requirements = requirementEao.findList(period, areaId, subAreaId, recruiterId);
+    	try {
+    		List<Requirement> requirements = requirementEao.findList(periodYear,periodMonth, areaId, subAreaId, recruiterId);
 
-    	return requirements;
+        	return requirements;	
+		} catch (Exception e) {
+			e.printStackTrace();
+			if (e.getMessage()!=null && e.getMessage().trim().length()>0) {
+				throw new ServiceException(e.getMessage(), e);	
+			}else{
+				throw new ServiceException();
+			}
+		}
+    	
+    	
     	
     }
     
@@ -370,8 +388,17 @@ public class RequirementServiceImpl implements RequirementService {
     @Override
 	public void add(Requirement requirement) throws ServiceException {
 		try {
-
+			
+			List<RequirementUser> recruiters = requirement.getUsers();
+			requirement.setUsers(null);
 			requirementEao.add(requirement);
+			
+			for (RequirementUser requirementUser : recruiters) {
+				requirementUser.setRequirement(requirement);
+				requirementUser.setRequirementId(requirement.getId());
+				requirementUserEao.add(requirementUser);
+			}
+			
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -383,19 +410,23 @@ public class RequirementServiceImpl implements RequirementService {
 		}
 	}
     
-    /*@Override
-	public RequirementDto findById(Integer requirementId)
-			throws RecruitmentException {
+    @Override
+	public Requirement findById(Integer requirementId)
+			throws ServiceException {
 		try {
-			RequirementDto requirement = requirementEao.findById(requirementId);
+			
+			Requirement requirement = requirementEao.findById(requirementId);
+			
 			return requirement;
-		} catch (EaoExcepcion e) {
-			throw new RecruitmentException(e.getMessage());
 		} catch (Exception e) {
 			e.printStackTrace();
-			throw new RecruitmentException(e.getMessage());
+			if (e.getMessage()!=null && e.getMessage().trim().length()>0) {
+				throw new ServiceException(e.getMessage(), e);	
+			}else{
+				throw new ServiceException();
+			}
 		}
-	}*/
+	}
     
     
     
@@ -461,6 +492,49 @@ public class RequirementServiceImpl implements RequirementService {
 		Double endOjtRequisition=0.0; 
 		endOjtRequisition=amountEndOjt/amount;
 		return endOjtRequisition;
+	}
+
+	@Override
+	public Requirement edit(Requirement requirement) throws ServiceException {
+		
+		try {
+			
+			Requirement requirementFound = requirementEao.findById(requirement.getId());
+			
+			if (requirementFound==null) {
+				throw new RequirementNotFoundException();
+			}
+			
+			
+			requirement = requirementEao.edit(requirement);
+			
+			return requirement;
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			if (e.getMessage()!=null && e.getMessage().trim().length()>0) {
+				throw new ServiceException(e.getMessage(), e);	
+			}else{
+				throw new ServiceException();
+			}
+		}
+	}
+
+	@Override
+	public List<Requirement> findByRecruiter(Integer recruiterId) throws ServiceException {
+		try {
+			List<Requirement> requirements = requirementEao.findByRecruiter(recruiterId);
+
+	    	return requirements;
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			if (e.getMessage()!=null && e.getMessage().trim().length()>0) {
+				throw new ServiceException(e.getMessage(), e);	
+			}else{
+				throw new ServiceException();
+			}
+		}
 	}
 	
 	////////////////////////////////////////////////////////

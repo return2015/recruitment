@@ -8,6 +8,8 @@ import javax.faces.bean.ViewScoped;
 import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 
+import org.primefaces.context.RequestContext;
+
 import com.returnsoft.recruitment.entity.Area;
 import com.returnsoft.recruitment.exception.UserLoggedNotFoundException;
 import com.returnsoft.recruitment.service.AreaService;
@@ -33,9 +35,9 @@ public class EditAreaController implements Serializable{
 	@EJB
 	private AreaService areaService;
 	
-	private Area entitySelected;
+	private Area areaSelected;
 	
-	private String stateSelected;
+	/*private String stateSelected;*/
 	
 	//private List<SelectItem> states;
 	
@@ -55,17 +57,19 @@ public class EditAreaController implements Serializable{
 
 			System.out.println("areaId:" + areaId);
 			
-			entitySelected = areaService.findById(Integer.parseInt(areaId));
+			areaSelected = areaService.findById(Integer.parseInt(areaId));
 			
-			if (entitySelected==null) {
+			if (areaSelected==null) {
 				throw new Exception("No se encontró el área");
 			}
 			
-			if (entitySelected.getIsActive()) {
+			System.out.println("isActive:"+areaSelected.getIsActive());
+			
+			/*if (areaSelected.getIsActive()) {
 				stateSelected="1";
 			}else{
 				stateSelected="0";
-			}
+			}*/
 			
 			
 			return null;
@@ -83,28 +87,47 @@ public class EditAreaController implements Serializable{
 	
 	public void edit(){
 		
+		try {
+			
+			if (sessionBean == null || sessionBean.getUser() == null || sessionBean.getUser().getId() == null) {
+				throw new UserLoggedNotFoundException();
+			}
+			
+			/*if (stateSelected!=null && stateSelected.length()>0) {
+				if (stateSelected.equals("1")) {
+					areaSelected.setIsActive(Boolean.TRUE);	
+				}else{
+					areaSelected.setIsActive(Boolean.FALSE);
+				}
+			}*/
+			
+			areaSelected =areaService.edit(areaSelected);
+			
+			facesUtil.sendConfirmMessage("Se editó satisfactoriamente");
+			
+			RequestContext.getCurrentInstance().closeDialog(areaSelected);
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			facesUtil.sendErrorMessage(e.getMessage());
+		}
+		
 	}
 
 
-	public Area getEntitySelected() {
-		return entitySelected;
-	}
-
-
-	public void setEntitySelected(Area entitySelected) {
-		this.entitySelected = entitySelected;
-	}
-
-
-	public String getStateSelected() {
-		return stateSelected;
-	}
-
-
-	public void setStateSelected(String stateSelected) {
-		this.stateSelected = stateSelected;
-	}
 	
+
+
+	public Area getAreaSelected() {
+		return areaSelected;
+	}
+
+
+	public void setAreaSelected(Area areaSelected) {
+		this.areaSelected = areaSelected;
+	}
+
 	
 	
 

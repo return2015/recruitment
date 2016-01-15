@@ -119,7 +119,7 @@ public class UserEao{
 		try {
 			
 			TypedQuery<User> q = em.createQuery(
-					"SELECT u FROM User u WHERE u.userType = :userType", User.class);
+					"SELECT u FROM User u WHERE u.isActive=1 and u.userType = :userType", User.class);
 			q.setParameter("userType", userType);
 			
 			List<User> users = q.getResultList();

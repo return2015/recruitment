@@ -41,7 +41,7 @@
 
 							<p:outputLabel value="Tipo Documento"></p:outputLabel>
 							<h:panelGroup>
-								<p:selectOneMenu 
+								<p:selectOneMenu
 									value="#{addInterviewController.interviewSelected.candidate.documentType}"
 									required="true"
 									requiredMessage="Debe seleccionar tipo de documento">
@@ -52,30 +52,32 @@
 								<p:spacer width="4" height="1"></p:spacer>
 								<p:outputLabel value="# Documento"></p:outputLabel>
 								<p:spacer width="4" height="1"></p:spacer>
-								<p:inputText  style="width:80px;"
+								<p:inputText style="width:80px;"
 									value="#{addInterviewController.documentNumber}"
 									required="true"
 									requiredMessage="Debe ingresar número de documento">
-									<p:ajax listener="#{addInterviewController.searchCandidate}" event="blur" update="@form :messages" />
-									</p:inputText>
+									<p:ajax listener="#{addInterviewController.searchCandidate}"
+										event="blur" update="@form :messages" />
+								</p:inputText>
 								<p:spacer width="4" height="1"></p:spacer>
-								<p:outputLabel id="info" value="#{addInterviewController.info}" style="color:red;font-style:italic;"></p:outputLabel>	
+								<p:outputLabel id="info" value="#{addInterviewController.info}"
+									style="color:red;font-style:italic;"></p:outputLabel>
 							</h:panelGroup>
 
 							<p:outputLabel value="Nombres"></p:outputLabel>
-							<p:inputText 
+							<p:inputText
 								value="#{addInterviewController.interviewSelected.candidate.firstname}"
 								style="width: 300px;" required="true"
 								requiredMessage="Debe ingresar Nombres"></p:inputText>
 
 							<p:outputLabel value="Apellidos"></p:outputLabel>
-							<p:inputText 
+							<p:inputText
 								value="#{addInterviewController.interviewSelected.candidate.lastname}"
 								style="width: 300px;" required="true"
 								requiredMessage="Debe ingresar Apellidos"></p:inputText>
 							<p:outputLabel value="Fecha Nacimiento"></p:outputLabel>
 							<h:panelGroup>
-								<p:calendar id="bornDate" 
+								<p:calendar id="bornDate"
 									value="#{addInterviewController.interviewSelected.candidate.bornDate}"
 									navigator="true" mindate="#{addInterviewController.minDate}"
 									maxdate="#{addInterviewController.maxDate}"
@@ -87,12 +89,11 @@
 								<p:spacer width="4" height="1"></p:spacer>
 								<p:outputLabel value="Edad"></p:outputLabel>
 								<p:spacer width="4" height="1"></p:spacer>
-								<p:outputLabel id="age" value="#{addInterviewController.age}"
-									></p:outputLabel>
+								<p:outputLabel id="age" value="#{addInterviewController.age}"></p:outputLabel>
 							</h:panelGroup>
 
 							<p:outputLabel value="Correo"></p:outputLabel>
-							<p:inputText style="width: 300px;" 
+							<p:inputText style="width: 300px;"
 								value="#{addInterviewController.interviewSelected.candidate.mail}"></p:inputText>
 
 							<p:outputLabel value="Telefono móvil"></p:outputLabel>
@@ -104,11 +105,10 @@
 								<p:outputLabel value="Telefono fijo"></p:outputLabel>
 								<p:spacer width="4" height="1"></p:spacer>
 								<p:inputText style="width:80px;"
-									value="#{addInterviewController.interviewSelected.candidate.phone}"
-									></p:inputText>
+									value="#{addInterviewController.interviewSelected.candidate.phone}"></p:inputText>
 							</h:panelGroup>
 							<p:outputLabel value="Dirección"></p:outputLabel>
-							<p:inputText style="width: 300px;" 
+							<p:inputText style="width: 300px;"
 								value="#{addInterviewController.interviewSelected.candidate.homeAddress}"
 								required="true" requiredMessage="Debe ingresar dirección."></p:inputText>
 
@@ -125,8 +125,7 @@
 								<p:spacer width="4" height="1"></p:spacer>
 								<p:outputLabel value="Departamento"></p:outputLabel>
 								<p:spacer width="4" height="1"></p:spacer>
-								<p:selectOneMenu id="department" 
-									style="width:80px;"
+								<p:selectOneMenu id="department" style="width:80px;"
 									value="#{addInterviewController.departmentSelected}">
 									<f:selectItem itemValue="" itemLabel="Seleccione"></f:selectItem>
 									<f:selectItems value="#{addInterviewController.departments}"></f:selectItems>
@@ -136,7 +135,7 @@
 							</h:panelGroup>
 							<p:outputLabel value="Provincia"></p:outputLabel>
 							<h:panelGroup>
-								<p:selectOneMenu id="province"  style="width:80px;"
+								<p:selectOneMenu id="province" style="width:80px;"
 									value="#{addInterviewController.provinceSelected}">
 									<f:selectItem itemValue="" itemLabel="Seleccione"></f:selectItem>
 									<f:selectItems value="#{addInterviewController.provinces}"></f:selectItems>
@@ -178,12 +177,12 @@
 							</h:panelGroup>
 
 							<p:outputLabel value="Último trabajo"></p:outputLabel>
-							<p:inputText style="width: 300px;" required="true" 
+							<p:inputText style="width: 300px;" required="true"
 								requiredMessage="Debe ingresar último trabajo."
 								value="#{addInterviewController.interviewSelected.candidate.lastJob}"></p:inputText>
 
 							<p:outputLabel value="Tipo de ingreso"></p:outputLabel>
-							<p:selectOneMenu 
+							<p:selectOneMenu
 								value="#{addInterviewController.interviewSelected.candidate.entryType}"
 								required="true"
 								requiredMessage="Debe ingresar: Tipo de ingreso.">
@@ -196,11 +195,18 @@
 						</h:panelGrid>
 					</p:fieldset>
 					<p:fieldset legend="DATOS DE ENTREVISTA">
-					<h:panelGrid columns="2">
+						<h:panelGrid columns="2">
+							<p:outputLabel value="Requerimiento"></p:outputLabel>
+
+							<p:selectOneMenu
+								value="#{addInterviewController.requirementSelected}"
+								required="true"
+								requiredMessage="Debe seleccionar Requerimiento">
+								<f:selectItems value="#{addInterviewController.requirements}"></f:selectItems>
+							</p:selectOneMenu>
 
 
-
-					</h:panelGrid>
+						</h:panelGrid>
 					</p:fieldset>
 
 
@@ -208,7 +214,7 @@
 
 				<h:panelGrid style="margin:auto;text-align:center;">
 					<p:commandButton actionListener="#{addInterviewController.add}"
-						update="@form :messages" value="Agregar" >
+						update="@form :messages" value="Agregar">
 					</p:commandButton>
 				</h:panelGrid>
 			</h:panelGrid>

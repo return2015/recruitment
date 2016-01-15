@@ -3,19 +3,25 @@ package com.returnsoft.recruitment.controller;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.ejb.EJB;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ViewScoped;
 import javax.faces.model.SelectItem;
 import javax.inject.Inject;
-import javax.naming.InitialContext;
+
+import org.primefaces.context.RequestContext;
+import org.primefaces.event.SelectEvent;
 
 import com.returnsoft.recruitment.entity.Area;
 import com.returnsoft.recruitment.entity.Requirement;
 import com.returnsoft.recruitment.entity.User;
+import com.returnsoft.recruitment.enumeration.MonthEnum;
 import com.returnsoft.recruitment.enumeration.UserTypeEnum;
+import com.returnsoft.recruitment.enumeration.YearEnum;
 import com.returnsoft.recruitment.exception.UserLoggedNotFoundException;
 import com.returnsoft.recruitment.service.AreaService;
 import com.returnsoft.recruitment.service.RequirementService;
@@ -38,10 +44,6 @@ public class SearchRequirementController implements Serializable {
 	@Inject
 	private SessionBean sessionBean;
 	
-	
-	
-	
-	
 	private List<Requirement> requirements;
 	
 	@EJB
@@ -62,6 +64,12 @@ public class SearchRequirementController implements Serializable {
 	private List<SelectItem> recruiters;
 	private String recruiterSelected;
 	
+	private List<SelectItem> years;
+	private String yearSelected;
+	
+	private List<SelectItem> months;
+	private String monthSelected;
+	
 	private Date period;
 	
 	private Requirement requirementSelected;
@@ -74,7 +82,7 @@ public class SearchRequirementController implements Serializable {
 				throw new UserLoggedNotFoundException();
 			}
 			
-			List<Area> areasEntity = areaService.findAreasParent();
+			List<Area> areasEntity = areaService.findAreasParentActive();
 			areas = new ArrayList<SelectItem>();
 			for (Area areaEntity : areasEntity) {
 				SelectItem item = new SelectItem();
@@ -90,6 +98,23 @@ public class SearchRequirementController implements Serializable {
 				item.setValue(recruiterEntity.getId().toString());
 				item.setLabel(recruiterEntity.getFirstname() + " " + recruiterEntity.getLastname());
 				recruiters.add(item);
+			}
+			
+			
+			years = new ArrayList<SelectItem>();
+			for (YearEnum yearEnum : YearEnum.values()) {
+				SelectItem item = new SelectItem();
+				item.setValue(yearEnum.getId());
+				item.setLabel(yearEnum.getName());
+				years.add(item);
+			}
+			
+			months = new ArrayList<SelectItem>();
+			for (MonthEnum monthEnum : MonthEnum.values()) {
+				SelectItem item = new SelectItem();
+				item.setValue(monthEnum.getId());
+				item.setLabel(monthEnum.getName());
+				months.add(item);
 			}
 			
 			
@@ -169,9 +194,24 @@ public class SearchRequirementController implements Serializable {
 			if (subAreaSelected != null && !subAreaSelected.equals("")) {
 				subAreaId=Integer.parseInt(subAreaSelected);
 			}
+			
+			YearEnum yearEnum=null;
+			if (yearSelected!=null && yearSelected.length()>0) {
+				Short idYear = Short.parseShort(yearSelected);
+				yearEnum =  YearEnum.findById(idYear);
+			}
+			
+			
+			MonthEnum monthEnum=null;
+			if (monthSelected!=null && monthSelected.length()>0) {
+				Short idMonth = Short.parseShort(monthSelected);
+				monthEnum =  MonthEnum.findById(idMonth);
+			}
 
 
-			requirements = requirementService.findList(period,areaId, subAreaId, recruiterId);
+			requirements = requirementService.findList(yearEnum, monthEnum,areaId, subAreaId, recruiterId);
+			
+			requirementSelected = null;
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -187,7 +227,7 @@ public class SearchRequirementController implements Serializable {
 			if (areaSelected!=null) {
 				
 				Integer areaId = Integer.parseInt(areaSelected);
-				List<Area> areasEntity = areaService.findAreasChild(areaId);
+				List<Area> areasEntity = areaService.findAreasChildActive(areaId);
 				subAreas = new ArrayList<SelectItem>();
 				for (Area areaEntity : areasEntity) {
 					SelectItem item = new SelectItem();
@@ -204,6 +244,62 @@ public class SearchRequirementController implements Serializable {
 			facesUtil.sendErrorMessage(e.getClass().getSimpleName(), e.getMessage());
 		}
 	}
+	
+	
+	public void edit() {
+		try {
+			
+			if (sessionBean == null || sessionBean.getUser() == null || sessionBean.getUser().getId() < 1) {
+				throw new UserLoggedNotFoundException();
+			}
+			
+			System.out.println("Ingreso a edit");
+			
+			Map<String, Object> options = new HashMap<String, Object>();
+			options.put("modal", true);
+			options.put("draggable", true);
+			options.put("resizable", true);
+			options.put("contentHeight", 400);
+			options.put("contentWidth", 1000);
+
+			/*return "edit_user?faces-redirect=true&userId="
+					+ userSelected.getId();*/
+			Map<String, List<String>> paramMap = new HashMap<String, List<String>>();
+			ArrayList<String> paramList = new ArrayList<>();
+			paramList.add(String.valueOf(requirementSelected.getId()));
+			paramMap.put("requirementId", paramList);
+			RequestContext.getCurrentInstance().openDialog("edit_requirement", options, paramMap);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			facesUtil.sendErrorMessage(e.getClass().getSimpleName(), e.getMessage());
+			//return null;
+		}
+	}
+	
+	public void afterEdit(SelectEvent event){
+		try {
+			Requirement requirementReturn = (Requirement) event.getObject();
+			
+			int i = 0;
+			for (Requirement requirement : requirements) {
+				//Sale sale = sales.get(i);
+				if (requirement.getId().equals(requirementReturn.getId())) {
+					requirements.set(i, requirementReturn);
+					requirementSelected = requirementReturn;
+					break;
+				}
+				i++;
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			facesUtil.sendErrorMessage(e.getClass().getSimpleName(), e.getMessage());
+			//return null;
+		}
+		
+	}
+	
 	
 
 	public String getRecruiterSelected() {
@@ -276,6 +372,38 @@ public class SearchRequirementController implements Serializable {
 
 	public void setRequirementSelected(Requirement requirementSelected) {
 		this.requirementSelected = requirementSelected;
+	}
+
+	public List<SelectItem> getYears() {
+		return years;
+	}
+
+	public void setYears(List<SelectItem> years) {
+		this.years = years;
+	}
+
+	public String getYearSelected() {
+		return yearSelected;
+	}
+
+	public void setYearSelected(String yearSelected) {
+		this.yearSelected = yearSelected;
+	}
+
+	public List<SelectItem> getMonths() {
+		return months;
+	}
+
+	public void setMonths(List<SelectItem> months) {
+		this.months = months;
+	}
+
+	public String getMonthSelected() {
+		return monthSelected;
+	}
+
+	public void setMonthSelected(String monthSelected) {
+		this.monthSelected = monthSelected;
 	}
 	
 	

@@ -7,98 +7,179 @@
 	xmlns:f="http://java.sun.com/jsf/core"
 	xmlns:p="http://primefaces.org/ui">
 
-<ui:composition template="/WEB-INF/templates/BasicTemplate.xhtml">
+<f:metadata>
+	<f:viewAction action="#{editRequirementController.initialize}" />
+</f:metadata>
 
-	<ui:define name="content">
-		<f:event type="preRenderView"
-			listener="#{requirementController.beforeEdit}" />
+<h:head>
+	<h:outputStylesheet library="css" name="facesUtil.css" />
+</h:head>
+
+<h:body>
+
 		<div class="title ui-widget-header ui-corner-all">
 			<h:panelGrid style="margin:auto;">
 		EDITAR REQUERIMIENTO
 		</h:panelGrid>
 
 		</div>
-		<h:form id="formEdit">
+
+		<h:panelGrid style="margin:auto;text-align:center;">
+			<p:messages id="messages"></p:messages>
+		</h:panelGrid>
+
+		<h:form id="form">
 			<h:panelGrid style="margin:auto;">
 
-				<h:panelGrid style="margin:auto;text-align:center;">
-					<p:messages id="messages"></p:messages>
+				<h:panelGrid columns="2" rowClasses="panelgrid_center_row">
+
+					<h:panelGrid columns="2">
+
+						<p:outputLabel value="Periodo Mes"></p:outputLabel>
+						<h:panelGrid columns="3">
+							<p:selectOneMenu id="months" required="true"
+								requiredMessage="Debe seleccionar Mes de Periodo"
+								value="#{editRequirementController.monthSelected}">
+								<f:selectItem itemValue="" itemLabel="Seleccione..."></f:selectItem>
+								<f:selectItems value="#{editRequirementController.months}"></f:selectItems>
+							</p:selectOneMenu>
+							<p:outputLabel value="Año"></p:outputLabel>
+							<p:selectOneMenu id="years" required="true"
+								requiredMessage="Debe seleccionar Año de Periodo"
+								value="#{editRequirementController.yearSelected}">
+								<f:selectItem itemValue="" itemLabel="Seleccione..."></f:selectItem>
+								<f:selectItems value="#{editRequirementController.years}"></f:selectItems>
+							</p:selectOneMenu>
+
+						</h:panelGrid>
+
+						<p:outputLabel value="Area"></p:outputLabel>
+						<p:selectOneMenu id="areas"
+							value="#{editRequirementController.areaSelected}">
+							<f:selectItem itemValue="" itemLabel="Seleccione..."></f:selectItem>
+							<f:selectItems value="#{editRequirementController.areas}"></f:selectItems>
+							<p:ajax listener="#{editRequirementController.searchSubAreas}"
+								update=":form:subAreas :messages"></p:ajax>
+						</p:selectOneMenu>
+
+						<p:outputLabel value="SubArea"></p:outputLabel>
+						<p:selectOneMenu id="subAreas" required="true"
+							requiredMessage="Debe seleccionar: Subarea."
+							value="#{editRequirementController.subAreaSelected}">
+							<f:selectItem itemValue="" itemLabel="Seleccione"></f:selectItem>
+							<f:selectItems value="#{editRequirementController.subAreas}"></f:selectItems>
+						</p:selectOneMenu>
+
+
+
+						<p:outputLabel value="Fecha Inicio Capacitación"></p:outputLabel>
+						<p:calendar id="startTrainingDate"
+							value="#{editRequirementController.requirementSelected.startTraining}"
+							pattern="dd-MM-yyyy" required="true"
+							requiredMessage="Debe seleccionar Fecha Inicio de Capacitación.">
+						</p:calendar>
+
+						<p:outputLabel value="Fecha Fin Capacitación"></p:outputLabel>
+						<p:calendar id="endTrainingDate"
+							value="#{editRequirementController.requirementSelected.endTraining}"
+							pattern="dd-MM-yyyy" required="true"
+							requiredMessage="Debe seleccionar Fecha Fin de Capacitación.">
+						</p:calendar>
+
+						<p:outputLabel value="Fecha Inicio OJT"></p:outputLabel>
+						<p:calendar id="startOjtDate"
+							value="#{editRequirementController.requirementSelected.startOjt}"
+							pattern="dd-MM-yyyy" required="true"
+							requiredMessage="Debe seleccionar Fecha Inicio de OJT.">
+						</p:calendar>
+						
+						<p:outputLabel value="Total"></p:outputLabel>
+						<h:panelGrid columns="5">
+						<p:outputLabel id="totalAmount" value="#{editRequirementController.requirementSelected.amount}"></p:outputLabel>
+						<p:spacer width="10" height="5"></p:spacer>
+						<p:outputLabel value="Activo"></p:outputLabel>
+						<p:spacer width="10" height="5"></p:spacer>
+						<p:selectBooleanCheckbox id="isActive" value="#{editRequirementController.requirementSelected.isActive}">
+						</p:selectBooleanCheckbox>
+						</h:panelGrid>
+
+					</h:panelGrid>
+
+					<h:panelGroup>
+
+						<p:fieldset legend="RECLUTADORES">
+
+
+							<h:panelGrid>
+
+								<h:panelGrid columns="2">
+
+									<p:outputLabel value="Reclutador"></p:outputLabel>
+									<p:selectOneMenu id="recruiters" required="true"
+										requiredMessage="Debe seleccionar reclutador."
+										style="width:100px;"
+										value="#{editRequirementController.recruiterSelected}">
+										<f:selectItem itemValue="" itemLabel="Seleccione"></f:selectItem>
+										<f:selectItems value="#{editRequirementController.recruiters}"></f:selectItems>
+									</p:selectOneMenu>
+
+									<p:outputLabel value="Cantidad"></p:outputLabel>
+									<p:spinner id="amount" min="1"
+										value="#{editRequirementController.amount}"></p:spinner>
+
+									<h:panelGrid style="margin:auto;text-align:center;">
+										<p:commandButton process="@this :form:recruiters :form:amount"
+											actionListener="#{editRequirementController.addRecruiter}"
+											value="Agregar Reclutador"
+											update=":form:recruitersTable :form:recruiters :form:amount :form:totalAmount :messages">
+										</p:commandButton>
+									</h:panelGrid>
+
+								</h:panelGrid>
+
+								<p:dataTable id="recruitersTable" style="width:300px;"
+									value="#{editRequirementController.requirementSelected.users}"
+									var="u">
+
+									<p:column headerText="Nombres">
+										<h:outputText value="#{u.user.firstname} #{u.user.lastname}"></h:outputText>
+									</p:column>
+
+									<p:column headerText="Cantidad">
+										<h:outputText value="#{u.amount}"></h:outputText>
+									</p:column>
+
+									<p:column>
+										<p:commandButton process=":form:recruitersTable"
+											update=":form:recruitersTable :form:totalAmount :messages" value="Eliminar"
+											actionListener="#{editRequirementController.deleteRecruiter(u)}">
+										</p:commandButton>
+									</p:column>
+
+								</p:dataTable>
+
+							</h:panelGrid>
+
+
+
+						</p:fieldset>
+
+					</h:panelGroup>
+
+
+
 				</h:panelGrid>
 
-				<h:panelGrid columns="4">
-
-					
-					
-					<p:outputLabel value="Inicio de capacitacion"></p:outputLabel>
-					<p:calendar  
-						value="#{requirementController.requirementSelected.startTraining}"
-						pattern="dd-MM-yyyy" required="true"
-						requiredMessage="Debe seleccionar inicio de capacitacion.">
-					</p:calendar>
-					
-					<p:outputLabel value="Fin de capacitacion"></p:outputLabel>
-					<p:calendar  
-						value="#{requirementController.requirementSelected.endTraining}"
-						pattern="dd-MM-yyyy" required="true"
-						requiredMessage="Debe seleccionar fin de capacitacion.">
-					</p:calendar>
-					
-					<p:outputLabel value="Periodo"></p:outputLabel>
-					<p:calendar  
-						value="#{requirementController.requirementSelected.period}"
-						pattern="dd-MM-yyyy" required="true"
-						requiredMessage="Debe seleccionar periodo.">
-					</p:calendar>
-					
-					<p:outputLabel value="Inicio de OJT"></p:outputLabel>
-					<p:calendar  
-						value="#{requirementController.requirementSelected.startOjt}"
-						pattern="dd-MM-yyyy" required="true"
-						requiredMessage="Debe seleccionar inicio de OJT.">
-					</p:calendar>
-					
-					<p:outputLabel value="Area"></p:outputLabel>
-					<p:selectOneMenu id="areas"
-						value="#{requirementController.areaSelected}">
-						<f:selectItem itemValue="" itemLabel="Seleccione..."></f:selectItem>
-						<f:selectItems value="#{requirementController.areas}"></f:selectItems>
-						<p:ajax listener="#{requirementController.searchSubAreas}"
-							update=":formEdit:subAreas :formEdit:messages"></p:ajax>
-					</p:selectOneMenu>
-					
-
-					<p:outputLabel value="SubArea"></p:outputLabel>
-					<p:selectOneMenu id="subAreas" required="true" tabindex="18"
-						requiredMessage="Debe seleccionar: Subarea."
-						value="#{requirementController.subAreaSelected}">
-						<f:selectItem itemValue="" itemLabel="Seleccione"></f:selectItem>
-						<f:selectItems value="#{requirementController.subAreas}"></f:selectItems>
-					</p:selectOneMenu>
-					
-					<p:outputLabel value="Reclutador"></p:outputLabel>
-					<p:selectOneMenu id="recruitments"
-						value="#{requirementController.recruiterSelected}"
-						required="true" requiredMessage="Debe seleccionar reclutador">
-						<f:selectItem itemValue="" itemLabel="Seleccione..."></f:selectItem>
-						<f:selectItems value="#{requirementController.recruiters}"></f:selectItems>
-					</p:selectOneMenu>
-					
-					<p:outputLabel value="Cantidad" />
-        			<p:spinner value="#{requirementController.requirementSelected.amount}"
-        			required="true" requiredMessage="Debe ingresar cantidad" />
-
-				</h:panelGrid>
-
-
 
 				<h:panelGrid style="margin:auto;text-align:center;">
-					<p:commandButton action="#{requirementController.add}"
-						value="Editar" ajax="false" tabindex="24">
+					<p:commandButton actionListener="#{editRequirementController.edit}"
+						process="@this :form:months :form:years :form:subAreas 
+					:form:startTrainingDate :form:endTrainingDate :form:startOjtDate :form:isActive" 
+						value="Editar Requerimiento" update="@form :messages">
 					</p:commandButton>
 				</h:panelGrid>
 			</h:panelGrid>
 		</h:form>
-	</ui:define>
+	</h:body>
 
-</ui:composition>
 </html>

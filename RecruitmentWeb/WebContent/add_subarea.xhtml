@@ -12,7 +12,7 @@
 
 	<ui:define name="metadata">
 		<f:metadata>
-			<f:viewAction action="#{addAreaController.initialize}" />
+			<f:viewAction action="#{addSubAreaController.initialize}" />
 		</f:metadata>
 	</ui:define>
 
@@ -20,7 +20,7 @@
 	<ui:define name="content">
 		<div class="title ui-widget-header ui-corner-all">
 			<h:panelGrid style="margin:auto;">
-		AGREGAR AREA
+		AGREGAR SUBAREA
 		</h:panelGrid>
 
 		</div>
@@ -33,17 +33,25 @@
 
 
 			<h:panelGrid style="margin:auto;" rowClasses="panelgrid_center_row">
-
+			
 
 				<h:panelGrid columns="2">
+				
+				<p:outputLabel value="Area"></p:outputLabel>
+					<p:selectOneMenu id="areas" required="true" requiredMessage="Debe seleccionar área"
+						value="#{addSubAreaController.areaSelected}">
+						<f:selectItem itemValue="" itemLabel="Seleccione..."></f:selectItem>
+						<f:selectItems value="#{addSubAreaController.areas}"></f:selectItems>
+					</p:selectOneMenu>
+					
 					<p:outputLabel value="Nombre"></p:outputLabel>
-					<p:inputText value="#{addAreaController.entitySelected.name}"
+					<p:inputText value="#{addSubAreaController.subAreaSelected.name}"
 						style="width:100px;"></p:inputText>
 				</h:panelGrid>
 
 				<h:panelGrid style="margin:auto;text-align:center;">
-					<p:commandButton action="#{addAreaController.add}"
-						value="Agregar Area" update="@form :messages">
+					<p:commandButton action="#{addSubAreaController.add}"
+						value="Agregar SubArea" >
 					</p:commandButton>
 				</h:panelGrid>
 

@@ -21,6 +21,7 @@ import com.returnsoft.recruitment.entity.Interview;
 import com.returnsoft.recruitment.entity.InterviewState;
 import com.returnsoft.recruitment.entity.Province;
 import com.returnsoft.recruitment.entity.RecruitmentSource;
+import com.returnsoft.recruitment.entity.Requirement;
 import com.returnsoft.recruitment.exception.UserLoggedNotFoundException;
 import com.returnsoft.recruitment.service.CandidateService;
 import com.returnsoft.recruitment.service.CountryService;
@@ -30,6 +31,7 @@ import com.returnsoft.recruitment.service.EducationLevelService;
 import com.returnsoft.recruitment.service.InterviewStateService;
 import com.returnsoft.recruitment.service.ProvinceService;
 import com.returnsoft.recruitment.service.RecruitmentSourceService;
+import com.returnsoft.recruitment.service.RequirementService;
 import com.returnsoft.recruitment.util.FacesUtil;
 import com.returnsoft.recruitment.util.SessionBean;
 
@@ -89,6 +91,9 @@ public class AddInterviewController implements Serializable {
 	
 	@EJB
 	private CandidateService candidateService;
+	
+	@EJB
+	private RequirementService requirementService;
 
 	private String age;
 	private Date minDate;
@@ -104,6 +109,12 @@ public class AddInterviewController implements Serializable {
 	
 	private String info;
 	private String documentNumber;
+	
+	
+	///////
+	
+	private List<SelectItem> requirements;
+	private String requirementSelected;
 
 	public String initialize() {
 		try {
@@ -148,6 +159,16 @@ public class AddInterviewController implements Serializable {
 				item.setLabel(educationLevelDto.getName());
 				educationLevels.add(item);
 			}
+			
+			List<Requirement> requirementsDto = requirementService.findByRecruiter(sessionBean.getUser().getId());
+			requirements = new ArrayList<SelectItem>();
+			for (Requirement requirementDto : requirementsDto) {
+				SelectItem item = new SelectItem();
+				item.setValue(requirementDto.getId().toString());
+				item.setLabel(requirementDto.getCode());
+				requirements.add(item);
+			}
+			
 
 			Date today = new Date();
 			Calendar calendarMin = Calendar.getInstance();
@@ -788,6 +809,22 @@ public class AddInterviewController implements Serializable {
 
 	public void setDocumentNumber(String documentNumber) {
 		this.documentNumber = documentNumber;
+	}
+
+	public List<SelectItem> getRequirements() {
+		return requirements;
+	}
+
+	public void setRequirements(List<SelectItem> requirements) {
+		this.requirements = requirements;
+	}
+
+	public String getRequirementSelected() {
+		return requirementSelected;
+	}
+
+	public void setRequirementSelected(String requirementSelected) {
+		this.requirementSelected = requirementSelected;
 	}
 	
 	

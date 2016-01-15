@@ -14,13 +14,16 @@ import javax.persistence.Table;
 public class RequirementUser {
 	
 	@Id
+	@Column(name="requirement_id")
 	private Integer requirementId;
 	
 	@Id
+	@Column(name="user_id")
 	private Integer userId;
 	
 	@Column(name="amount")
 	private Integer amount;
+	
 	@ManyToOne
 	@PrimaryKeyJoinColumn(name="requirement_id", referencedColumnName="id")
 	private Requirement requirement;

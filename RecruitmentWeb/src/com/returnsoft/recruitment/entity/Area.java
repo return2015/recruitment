@@ -29,6 +29,9 @@ public class Area implements Serializable{
 	
 	@Column(name = "name")
 	private String name;
+	
+	@Column(name = "code")
+	private String code;
 
 	// bi-directional many-to-one association to Department
 	@ManyToOne
@@ -100,6 +103,14 @@ public class Area implements Serializable{
 
 	public void setIsActive(Boolean isActive) {
 		this.isActive = isActive;
+	}
+
+	public String getCode() {
+		return code;
+	}
+
+	public void setCode(String code) {
+		this.code = code;
 	}
 
 	

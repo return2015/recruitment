@@ -13,6 +13,8 @@ import javax.persistence.TypedQuery;
 
 import com.returnsoft.recruitment.entity.Requirement;
 import com.returnsoft.recruitment.entity.RequirementDto;
+import com.returnsoft.recruitment.enumeration.MonthEnum;
+import com.returnsoft.recruitment.enumeration.YearEnum;
 import com.returnsoft.recruitment.exception.EaoException;
 
 @LocalBean
@@ -22,54 +24,97 @@ public class RequirementEao {
 	@PersistenceContext
 	private EntityManager em;
 	
-	public List<Requirement> findList(Date period, Integer areaId, Integer subAreaId, Integer recruiterId){
+	
+	public List<Requirement> findByRecruiter(Integer recruiterId) throws EaoException{
+		try {
+			String query=
+			    	"SELECT rq "
+			    	+"FROM Requirement rq "
+			    	+"left join rq.users ru "
+			    	+"left join ru.user u " 
+			    	+"where u.id=:recruiterId and rq.isActive=1";
+			
+			TypedQuery<Requirement> q = em.createQuery(query,Requirement.class);
+			
+	    	q.setParameter("recruiterId", recruiterId);
+	    	
+	    	List<Requirement> requirements = q.getResultList();
+	    	
+			return requirements;
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new EaoException(e.getMessage());
+		}
+	}
+	
+	public List<Requirement> findList(YearEnum periodYear, MonthEnum periodMonth, Integer areaId, Integer subAreaId, Integer recruiterId) throws EaoException{
 		
-		String query=
-		    	"SELECT rq "
-		    	+"FROM Requirement rq "
-		    	+"left join rq.users u " 
-		    	+"left join rq.area a "
-		    	+"left join a.area ap "
-		    	+"where rq.id>0 ";
-		    	
-		    	if (areaId!=null && areaId>0) {
-					query+=" and ap.id=:areaId ";
-				}
-		    	
-		    	if (subAreaId!=null && subAreaId>0) {
-		    		query+=" and a.id=:subAreaId";
-				}
-		    	
-		    	if (period!=null) {
-		    		query+=" and rq.period=:period ";
-				}
-		    	
-		    	if (recruiterId!=null && recruiterId>0) {
-		    		query+=" and u.id=:recruiterId";
-				}
-		    	
-		    	TypedQuery<Requirement> q = em.createQuery(query,Requirement.class);
-		    	
-		    	if (areaId!=null && areaId>0) {
-		    		q.setParameter("areaId", areaId);
-				}
-		    	
-		    	if (subAreaId!=null && subAreaId>0) {
-		    		q.setParameter("subAreaId", subAreaId);
-				}
-		    	
-		    	if (period!=null) {
-		    		q.setParameter("period", period);
-				}
-		    	
-		    	if (recruiterId!=null && recruiterId>0) {
-		    		q.setParameter("recruiterId", recruiterId);
-				}
-		    	
-		    	List<Requirement> requirements = q.getResultList();
-		    	
-		    	
-				return requirements;
+		try {
+			String query=
+			    	"SELECT rq "
+			    	+"FROM Requirement rq "
+			    	+"left join rq.users ru "
+			    	+"left join ru.user u " 
+			    	+"left join rq.area a "
+			    	+"left join a.area ap "
+			    	+"where rq.id>0 ";
+			    	
+			    	if (areaId!=null && areaId>0) {
+						query+=" and ap.id=:areaId ";
+					}
+			    	
+			    	if (subAreaId!=null && subAreaId>0) {
+			    		query+=" and a.id=:subAreaId";
+					}
+			    	
+			    	if (periodYear!=null) {
+			    		query+=" and rq.periodYear=:periodYear ";
+					}
+			    	
+			    	if (periodMonth!=null) {
+			    		query+=" and rq.periodMonth=:periodMonth ";
+					}
+			    	
+			    	if (recruiterId!=null && recruiterId>0) {
+			    		query+=" and u.id=:recruiterId";
+					}
+			    	
+			    	query+=" group by rq.id";
+			    	
+			    	TypedQuery<Requirement> q = em.createQuery(query,Requirement.class);
+			    	
+			    	if (areaId!=null && areaId>0) {
+			    		q.setParameter("areaId", areaId);
+					}
+			    	
+			    	if (subAreaId!=null && subAreaId>0) {
+			    		q.setParameter("subAreaId", subAreaId);
+					}
+			    	
+			    	if (periodYear!=null) {
+			    		q.setParameter("periodYear", periodYear);
+					}
+			    	
+			    	if (periodMonth!=null) {
+			    		q.setParameter("periodMonth", periodMonth);
+					}
+			    	
+			    	if (recruiterId!=null && recruiterId>0) {
+			    		q.setParameter("recruiterId", recruiterId);
+					}
+			    	
+			    	List<Requirement> requirements = q.getResultList();
+			    	
+			    	
+					return requirements;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new EaoException(e.getMessage());
+		}
+		
+		
 		    	
 	}
 	
@@ -164,19 +209,76 @@ public class RequirementEao {
 	
 	
 	
-	public Requirement add(Requirement requirement) throws EaoException {
+	public void add(Requirement requirement) throws EaoException {
 		try {
-
-			requirement = em.merge(requirement);
+			
+			Long newCorrelative = generateNewCorrelative();
+			String code = newCorrelative.toString(); 
+			while (code.length()<3) {
+				code="0"+code;
+			}
+		
+			code= requirement.getPeriodYear().getId()+requirement.getPeriodMonth().getCode() +"-"+ requirement.getArea().getCode() +"-"+ code; 
+			
+			requirement.setCode(code);
+			em.persist(requirement);
 
 			em.flush();
 
-			return requirement;
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new EaoException(e.getMessage());
 		}
 	}
+	
+	public Requirement edit(Requirement requirement) throws EaoException {
+		try {
+			
+			requirement = em.merge(requirement);
+			em.flush();
+			
+			return requirement;
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new EaoException(e.getMessage());
+		}
+
+	}
+	
+	
+	
+	public Long generateNewCorrelative() throws EaoException{
+		try {
+			
+			String query = "SELECT max(cast(substring(a.code,12) as signed)) "
+					+ "FROM Requirement a ";
+			
+			Query q = em.createQuery(query);
+
+			Long maxCorrelative = (Long)q.getSingleResult();
+			
+			System.out.println("maxCorrelative:"+maxCorrelative);
+			
+			Long newCorrelative;
+			
+			if (maxCorrelative!=null && maxCorrelative>0) {
+				newCorrelative = maxCorrelative+1;
+			}else{
+				newCorrelative = new Long(1); 
+			}
+
+			return newCorrelative;
+			
+		} catch (NoResultException e) {
+			return null;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new EaoException(e.getMessage());
+		}
+	}
+	
 	
 	
 	public Requirement findById(Integer requirementId) throws EaoException {

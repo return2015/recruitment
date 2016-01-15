@@ -54,13 +54,16 @@ public class AddAreaController  implements Serializable{
 	}
 	
 	
-	public void add(){
+	public String add(){
 		try {
 			entitySelected.setIsActive(Boolean.TRUE);
 			areaService.add(entitySelected);
+			facesUtil.sendConfirmMessage("Se creó satisfactoriamente.");
+			return "search_area.xhtml?faces-redirect=true";
 		} catch (Exception e) {
 			e.printStackTrace();
 			facesUtil.sendErrorMessage(e.getMessage());
+			return null;
 		}
 	}
 

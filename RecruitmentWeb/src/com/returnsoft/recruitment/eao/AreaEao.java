@@ -4,7 +4,9 @@ import java.util.List;
 
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 
 import com.returnsoft.recruitment.entity.Area;
@@ -20,6 +22,14 @@ public class AreaEao {
 	public void add(Area area) throws EaoException {
 		try {
 			
+			Long newCorrelative = generateNewCorrelative();
+			String code = newCorrelative.toString(); 
+			while (code.length()<3) {
+				code="0"+code;
+			}
+			
+			area.setCode(code);
+			
 			em.persist(area);
 			em.flush();
 			
@@ -28,6 +38,51 @@ public class AreaEao {
 			throw new EaoException(e.getMessage());
 		}
 	}
+	
+	
+	public Long generateNewCorrelative() throws EaoException{
+		try {
+			
+			String query = "SELECT max(cast(a.code as signed)) "
+					+ "FROM Area a ";
+			
+			Query q = em.createQuery(query);
+
+			Long maxCorrelative = (Long)q.getSingleResult();
+			
+			Long newCorrelative;
+			
+			if (maxCorrelative!=null && maxCorrelative>0) {
+				newCorrelative = maxCorrelative+1;
+			}else{
+				newCorrelative = new Long(1); 
+			}
+
+			return newCorrelative;
+			
+		} catch (NoResultException e) {
+			return null;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new EaoException(e.getMessage());
+		}
+	}
+	
+	public Area edit(Area area) throws EaoException {
+		try {
+			
+			area = em.merge(area);
+			em.flush();
+			
+			return area;
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new EaoException(e.getMessage());
+		}
+
+	}
+	
 	
 	public Area findById(Integer areaId) throws EaoException {
 		try {
@@ -91,12 +146,11 @@ public class AreaEao {
 		}
 	}
 
-	public List<Area> findAreasChild(Integer areaId) throws EaoException {
+	public List<Area> findAreasChild() throws EaoException {
 		try {
 			
-			String query = "SELECT a FROM Area a left join a.area ac where ac.id = :areaId";
+			String query = "SELECT a FROM Area a left join a.area ac where ac.id is not null";
 			TypedQuery<Area> q = em.createQuery(query, Area.class);
-			q.setParameter("areaId", areaId);
 			List<Area> areas = q.getResultList();
 			
 			return areas;

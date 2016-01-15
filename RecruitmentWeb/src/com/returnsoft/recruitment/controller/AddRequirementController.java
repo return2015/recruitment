@@ -2,6 +2,7 @@ package com.returnsoft.recruitment.controller;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.ejb.EJB;
@@ -14,7 +15,9 @@ import com.returnsoft.recruitment.entity.Area;
 import com.returnsoft.recruitment.entity.Requirement;
 import com.returnsoft.recruitment.entity.RequirementUser;
 import com.returnsoft.recruitment.entity.User;
+import com.returnsoft.recruitment.enumeration.MonthEnum;
 import com.returnsoft.recruitment.enumeration.UserTypeEnum;
+import com.returnsoft.recruitment.enumeration.YearEnum;
 import com.returnsoft.recruitment.exception.UserLoggedNotFoundException;
 import com.returnsoft.recruitment.service.AreaService;
 import com.returnsoft.recruitment.service.RequirementService;
@@ -55,8 +58,14 @@ public class AddRequirementController implements Serializable {
 	private List<SelectItem> recruiters;
 	private String recruiterSelected;
 	private String amount;
+	private String totalAmount;
 
 	private Requirement requirementSelected;
+	
+	private List<SelectItem> months;
+	private String monthSelected;
+	private List<SelectItem> years;
+	private String yearSelected;
 
 	public AddRequirementController() {
 		System.out.println("Ingreso al constructor");
@@ -71,7 +80,7 @@ public class AddRequirementController implements Serializable {
 				throw new UserLoggedNotFoundException();
 			}
 
-			List<Area> areasEntity = areaService.findAreasParent();
+			List<Area> areasEntity = areaService.findAreasParentActive();
 			areas = new ArrayList<SelectItem>();
 			for (Area areaEntity : areasEntity) {
 				SelectItem item = new SelectItem();
@@ -88,6 +97,23 @@ public class AddRequirementController implements Serializable {
 				item.setLabel(recruiterEntity.getFirstname() + " " + recruiterEntity.getLastname());
 				recruiters.add(item);
 			}
+			
+			years = new ArrayList<SelectItem>();
+			for (YearEnum yearEnum : YearEnum.values()) {
+				SelectItem item = new SelectItem();
+				item.setValue(yearEnum.getId());
+				item.setLabel(yearEnum.getName());
+				years.add(item);
+			}
+			
+			months = new ArrayList<SelectItem>();
+			for (MonthEnum monthEnum : MonthEnum.values()) {
+				SelectItem item = new SelectItem();
+				item.setValue(monthEnum.getId());
+				item.setLabel(monthEnum.getName());
+				months.add(item);
+			}
+			
 
 			requirementSelected = new Requirement();
 			requirementSelected.setUsers(new ArrayList<RequirementUser>());
@@ -118,7 +144,7 @@ public class AddRequirementController implements Serializable {
 			if (areaSelected != null) {
 
 				Integer areaId = Integer.parseInt(areaSelected);
-				List<Area> areasEntity = areaService.findAreasChild(areaId);
+				List<Area> areasEntity = areaService.findAreasChildActive(areaId);
 				subAreas = new ArrayList<SelectItem>();
 				for (Area areaEntity : areasEntity) {
 					SelectItem item = new SelectItem();
@@ -167,10 +193,21 @@ public class AddRequirementController implements Serializable {
 							User user = userService.findById(Integer.parseInt(recruiterSelected));
 							RequirementUser ru = new RequirementUser();
 							ru.setUser(user);
+							//ru.setRequirement(requirementSelected);
+							//ru.setRequirementId(requirementSelected.getId());
+							ru.setUserId(user.getId());
 							ru.setAmount(Integer.parseInt(amount));
+							
 							requirementSelected.getUsers().add(ru);
 							recruiterSelected = "";
 							amount = "";
+							
+							Integer total =0;
+							for (RequirementUser requirementUser : requirementSelected.getUsers()) {
+								total+=requirementUser.getAmount();
+							}
+							requirementSelected.setAmount(total);
+							//totalAmount=total+"";
 						}
 					}else{
 						facesUtil.sendErrorMessage("La cantidad debe ser mayor a cero.");	
@@ -208,6 +245,13 @@ public class AddRequirementController implements Serializable {
 						break;
 					}
 				}
+				
+				Integer total =0;
+				for (RequirementUser requirementUser : requirementSelected.getUsers()) {
+					total+=requirementUser.getAmount();
+				}
+				requirementSelected.setAmount(total);
+				
 			}else{
 				facesUtil.sendErrorMessage("No se encontró reclutador.");	
 			}
@@ -224,6 +268,10 @@ public class AddRequirementController implements Serializable {
 			if (sessionBean == null || sessionBean.getUser() == null || sessionBean.getUser().getId() == null) {
 				throw new UserLoggedNotFoundException();
 			}
+			
+			if (requirementSelected.getUsers().size()==0) {
+				throw new Exception("Debe asignar al menos un reclutador.");
+			}
 
 			// if (trainingSelected != null && trainingSelected.getId() > 0) {
 
@@ -238,12 +286,49 @@ public class AddRequirementController implements Serializable {
 
 			if (subAreaSelected != null && subAreaSelected.length() > 0) {
 				Integer subAreaId = Integer.parseInt(subAreaSelected);
-				Area subArea = new Area();
-				subArea.setId(subAreaId);
+				Area subArea = areaService.findById(subAreaId);
 				requirementSelected.setArea(subArea);
 			}
-
+			
+			if (monthSelected!=null && monthSelected.length()>0) {
+				//System.out.println("monthSelected:"+monthSelected);
+				Short monthId = Short.parseShort(monthSelected);
+				MonthEnum monthEnum = MonthEnum.findById(monthId);
+				requirementSelected.setPeriodMonth(monthEnum);
+			}
+			
+			if (yearSelected!=null && yearSelected.length()>0) {
+				//System.out.println("yearSelected:"+yearSelected);
+				Short yearId = Short.parseShort(yearSelected);
+				//System.out.println("yearId:"+yearId);
+				YearEnum yearEnum = YearEnum.findById(yearId);
+				//System.out.println("yearEnum:"+yearEnum.toString());
+				requirementSelected.setPeriodYear(yearEnum);
+			}
+			
+			Integer total =0;
+			
+			for (RequirementUser requirementUser : requirementSelected.getUsers()) {
+				total+=requirementUser.getAmount();
+			}
+			
+			requirementSelected.setAmount(total);
+			requirementSelected.setIsActive(Boolean.TRUE);
+			requirementSelected.setCreatedAt(new Date());
+			requirementSelected.setCreatedBy(sessionBean.getUser());
+			
 			requirementService.add(requirementSelected);
+			
+			monthSelected="";
+			yearSelected="";
+			areaSelected="";
+			subAreaSelected="";
+			subAreas=new ArrayList<SelectItem>();
+			totalAmount="";
+			requirementSelected = new Requirement();
+			requirementSelected.setUsers(new ArrayList<RequirementUser>());
+			
+					
 
 			// SE IMPRIME MENSAJE DE CONFIRMACION
 			facesUtil.sendConfirmMessage("Se creó satisfactoriamente.");
@@ -252,7 +337,7 @@ public class AddRequirementController implements Serializable {
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			facesUtil.sendErrorMessage(e.getClass().getSimpleName(), e.getMessage());
+			facesUtil.sendErrorMessage(e.getMessage());
 		}
 	}
 
@@ -319,5 +404,49 @@ public class AddRequirementController implements Serializable {
 	public void setAmount(String amount) {
 		this.amount = amount;
 	}
+
+	public List<SelectItem> getMonths() {
+		return months;
+	}
+
+	public void setMonths(List<SelectItem> months) {
+		this.months = months;
+	}
+
+	public List<SelectItem> getYears() {
+		return years;
+	}
+
+	public void setYears(List<SelectItem> years) {
+		this.years = years;
+	}
+
+	public String getYearSelected() {
+		return yearSelected;
+	}
+
+	public void setYearSelected(String yearSelected) {
+		this.yearSelected = yearSelected;
+	}
+
+	public String getMonthSelected() {
+		return monthSelected;
+	}
+
+	public void setMonthSelected(String monthSelected) {
+		this.monthSelected = monthSelected;
+	}
+
+	public String getTotalAmount() {
+		return totalAmount;
+	}
+
+	public void setTotalAmount(String totalAmount) {
+		this.totalAmount = totalAmount;
+	}
+
+	
+	
+	
 
 }

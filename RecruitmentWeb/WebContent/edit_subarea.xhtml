@@ -9,7 +9,7 @@
 
 
 <f:metadata>
-	<f:viewAction action="#{editAreaController.initialize}" />
+	<f:viewAction action="#{editSubAreaController.initialize}" />
 </f:metadata>
 
 <h:head>
@@ -20,7 +20,7 @@
 
 	<div class="title ui-widget-header ui-corner-all">
 		<h:panelGrid style="margin:auto;">
-		EDITAR AREA
+		EDITAR SUBAREA
 		</h:panelGrid>
 
 	</div>
@@ -37,19 +37,26 @@
 
 				<h:panelGrid columns="2">
 				
+				<p:outputLabel value="Area"></p:outputLabel>
+					<p:selectOneMenu id="areas" required="true" requiredMessage="Debe seleccionar área"
+						value="#{editSubAreaController.areaSelected}">
+						<f:selectItems value="#{editSubAreaController.areas}"></f:selectItems>
+					</p:selectOneMenu>
+					
+				
 					<p:outputLabel value="Nombres"></p:outputLabel>
-					<p:inputText value="#{editAreaController.areaSelected.name}"
+					<p:inputText value="#{editSubAreaController.subAreaSelected.name}"
 						style="width:100px;"></p:inputText>
 
 					<p:outputLabel value="Estado"></p:outputLabel>
-					<p:selectBooleanCheckbox value="#{editAreaController.areaSelected.isActive}"
+					<p:selectBooleanCheckbox value="#{editSubAreaController.subAreaSelected.isActive}"
 						required="true" requiredMessage="Debe seleccionar estado">
 					</p:selectBooleanCheckbox>
 					
 				</h:panelGrid>
 
 				<h:panelGrid style="margin:auto;text-align:center;">
-					<p:commandButton actionListener="#{editAreaController.edit}"
+					<p:commandButton actionListener="#{editSubAreaController.edit}"
 						value="Editar Area" update="@form :messages">
 					</p:commandButton>
 				</h:panelGrid>

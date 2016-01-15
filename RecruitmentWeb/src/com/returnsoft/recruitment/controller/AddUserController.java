@@ -58,7 +58,7 @@ public class AddUserController implements Serializable {
 				throw new UserLoggedNotFoundException();
 			}
 
-			List<Area> areasDto = areaService.findAreasParent();
+			List<Area> areasDto = areaService.findAreasParentActive();
 
 			areas = new ArrayList<SelectItem>();
 			for (Area areaDto : areasDto) {
@@ -106,7 +106,7 @@ public class AddUserController implements Serializable {
 
 				Integer areaId = Integer.parseInt(areaSelected);
 
-				List<Area> areasEntity = areaService.findAreasChild(areaId);
+				List<Area> areasEntity = areaService.findAreasChildActive(areaId);
 				subAreas = new ArrayList<SelectItem>();
 				for (Area areaDto : areasEntity) {
 					SelectItem item = new SelectItem();
@@ -138,10 +138,16 @@ public class AddUserController implements Serializable {
 				userSelected.setUserType(userType);
 				userSelected.setIsActive(Boolean.TRUE);
 				userService.add(userSelected);
+				
+				
 
 				userTypeSelected = UserTypeEnum.RECRUITER.getId().toString();
 				userSelected = new User();
 				userSelected.setAreas(new ArrayList<Area>());
+				
+				
+				facesUtil.sendConfirmMessage("Se creó satisfactoriamente.");
+				
 
 			} else {
 				facesUtil.sendErrorMessage("Debe seleccionar tipo de usuario");

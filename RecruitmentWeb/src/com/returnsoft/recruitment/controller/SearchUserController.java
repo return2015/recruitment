@@ -112,18 +112,16 @@ public class SearchUserController implements Serializable{
 		try {
 			User userReturn = (User) event.getObject();
 			
-			System.out.println("after.."+userReturn.getUsername());
-			System.out.println("after.."+userReturn.getFirstname());
-			System.out.println("after.."+userReturn.getLastname());
-
-			//for (User user : users) {
+			int i = 0;
+			for (User user : users) {
 				//Sale sale = sales.get(i);
-				//if (user.getId().equals(userReturn.getId())) {
-					//sales.set(i, saleReturn);
+				if (user.getId().equals(userReturn.getId())) {
+					users.set(i, userReturn);
 					userSelected = userReturn;
-					//break;
-				//}
-			//}
+					break;
+				}
+				i++;
+			}
 			
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -22,34 +22,37 @@ import com.returnsoft.recruitment.util.SessionBean;
 
 @ManagedBean
 @ViewScoped
-public class SearchAreaController implements Serializable  {
+public class SearchSubAreaController implements Serializable {
 
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = -174406964333832198L;
-	
+	private static final long serialVersionUID = -9194439553456531094L;
+
 	@Inject
 	private FacesUtil facesUtil;
-	
+
 	@Inject
 	private SessionBean sessionBean;
-	
+
 	@EJB
 	private AreaService areaService;
-	
-	private List<Area> areas;
-	
-	private Area areaSelected;
-	
-	public String initialize(){
+
+	/*
+	 * private List<Area> areas; private String areaSelected;
+	 */
+
+	private List<Area> subAreas;
+	private Area subAreaSelected;
+
+	public String initialize() {
 		try {
 			if (sessionBean == null || sessionBean.getUser() == null || sessionBean.getUser().getId() == null) {
 				throw new UserLoggedNotFoundException();
 			}
-			
-			areas = areaService.findAreasParentAll();
-			
+
+			subAreas = areaService.findAreasChildAll();
+
 			return null;
 		} catch (UserLoggedNotFoundException e) {
 			e.printStackTrace();
@@ -61,16 +64,16 @@ public class SearchAreaController implements Serializable  {
 			return null;
 		}
 	}
-	
-	public void edit(){
+
+	public void edit() {
 		try {
-			
+
 			if (sessionBean == null || sessionBean.getUser() == null || sessionBean.getUser().getId() < 1) {
 				throw new UserLoggedNotFoundException();
 			}
-			
+
 			System.out.println("Ingreso a edit");
-			
+
 			Map<String, Object> options = new HashMap<String, Object>();
 			options.put("modal", true);
 			options.put("draggable", true);
@@ -78,34 +81,36 @@ public class SearchAreaController implements Serializable  {
 			options.put("contentHeight", 200);
 			options.put("contentWidth", 400);
 
-			/*return "edit_user?faces-redirect=true&userId="
-					+ userSelected.getId();*/
+			/*
+			 * return "edit_user?faces-redirect=true&userId=" +
+			 * userSelected.getId();
+			 */
 			Map<String, List<String>> paramMap = new HashMap<String, List<String>>();
 			ArrayList<String> paramList = new ArrayList<>();
-			paramList.add(String.valueOf(areaSelected.getId()));
-			paramMap.put("areaId", paramList);
-			RequestContext.getCurrentInstance().openDialog("edit_area", options, paramMap);
+			paramList.add(String.valueOf(subAreaSelected.getId()));
+			paramMap.put("subAreaId", paramList);
+			RequestContext.getCurrentInstance().openDialog("edit_subarea", options, paramMap);
 
 		} catch (Exception e) {
 			e.printStackTrace();
 			facesUtil.sendErrorMessage(e.getClass().getSimpleName(), e.getMessage());
-			//return null;
+			// return null;
 		}
 	}
-	
-	public void afterEdit(SelectEvent event){
+
+	public void afterEdit(SelectEvent event) {
 		try {
-			Area areaReturn = (Area) event.getObject();
+			Area subAreaReturn = (Area) event.getObject();
 			
 			/*System.out.println("after.."+areaReturn.getUsername());
 			System.out.println("after.."+userReturn.getFirstname());
 			System.out.println("after.."+userReturn.getLastname());*/
 			int i = 0;
-			for (Area area : areas) {
+			for (Area subArea : subAreas) {
 				//Area areaF = sales.get(i);
-				if (area.getId().equals(areaReturn.getId())) {
-					areas.set(i, areaReturn);
-					areaSelected = areaReturn;
+				if (subArea.getId().equals(subAreaReturn.getId())) {
+					subAreas.set(i, subAreaReturn);
+					subAreaSelected = subAreaReturn;
 					break;
 				}
 				i++;
@@ -118,25 +123,24 @@ public class SearchAreaController implements Serializable  {
 		}
 	}
 
-	public List<Area> getAreas() {
-		return areas;
+	public String add() {
+		return null;
 	}
 
-	public void setAreas(List<Area> areas) {
-		this.areas = areas;
+	public List<Area> getSubAreas() {
+		return subAreas;
 	}
 
-	public Area getAreaSelected() {
-		return areaSelected;
+	public void setSubAreas(List<Area> subAreas) {
+		this.subAreas = subAreas;
 	}
 
-	public void setAreaSelected(Area areaSelected) {
-		this.areaSelected = areaSelected;
+	public Area getSubAreaSelected() {
+		return subAreaSelected;
 	}
 
-	
-	
-	
-	
+	public void setSubAreaSelected(Area subAreaSelected) {
+		this.subAreaSelected = subAreaSelected;
+	}
 
 }

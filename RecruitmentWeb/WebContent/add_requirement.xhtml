@@ -20,7 +20,7 @@
 
 		<div class="title ui-widget-header ui-corner-all">
 			<h:panelGrid style="margin:auto;">
-		GESTIONAR REQUERIMIENTOS
+		AGREGAR REQUERIMIENTO
 		</h:panelGrid>
 
 		</div>
@@ -36,33 +36,23 @@
 
 					<h:panelGrid columns="2">
 
-						<p:outputLabel value="Periodo"></p:outputLabel>
-						<p:calendar
-							value="#{addRequirementController.requirementSelected.period}"
-							pattern="MM/yyyy" required="true"
-							requiredMessage="Debe seleccionar periodo.">
-						</p:calendar>
+						<p:outputLabel value="Periodo Mes"></p:outputLabel>
+						<h:panelGrid columns="3">
+							<p:selectOneMenu id="months" required="true"
+								requiredMessage="Debe seleccionar Mes de Periodo"
+								value="#{addRequirementController.monthSelected}">
+								<f:selectItem itemValue="" itemLabel="Seleccione..."></f:selectItem>
+								<f:selectItems value="#{addRequirementController.months}"></f:selectItems>
+							</p:selectOneMenu>
+							<p:outputLabel value="Año"></p:outputLabel>
+							<p:selectOneMenu id="years" required="true"
+								requiredMessage="Debe seleccionar Año de Periodo"
+								value="#{addRequirementController.yearSelected}">
+								<f:selectItem itemValue="" itemLabel="Seleccione..."></f:selectItem>
+								<f:selectItems value="#{addRequirementController.years}"></f:selectItems>
+							</p:selectOneMenu>
 
-						<p:outputLabel value="Fecha Inicio Capacitación"></p:outputLabel>
-						<p:calendar
-							value="#{addRequirementController.requirementSelected.startTraining}"
-							pattern="dd-MM-yyyy" required="true"
-							requiredMessage="Debe seleccionar Fecha Inicio Capacitación.">
-						</p:calendar>
-
-						<p:outputLabel value="Fecha Fin Capacitación"></p:outputLabel>
-						<p:calendar
-							value="#{addRequirementController.requirementSelected.endTraining}"
-							pattern="dd-MM-yyyy" required="true"
-							requiredMessage="Debe seleccionar fin de capacitacion.">
-						</p:calendar>
-
-						<p:outputLabel value="Fecha Inicio OJT"></p:outputLabel>
-						<p:calendar
-							value="#{addRequirementController.requirementSelected.startOjt}"
-							pattern="dd-MM-yyyy" required="true"
-							requiredMessage="Debe seleccionar inicio de OJT.">
-						</p:calendar>
+						</h:panelGrid>
 
 						<p:outputLabel value="Area"></p:outputLabel>
 						<p:selectOneMenu id="areas"
@@ -80,6 +70,33 @@
 							<f:selectItem itemValue="" itemLabel="Seleccione"></f:selectItem>
 							<f:selectItems value="#{addRequirementController.subAreas}"></f:selectItems>
 						</p:selectOneMenu>
+
+
+
+						<p:outputLabel value="Fecha Inicio Capacitación"></p:outputLabel>
+						<p:calendar id="startTrainingDate"
+							value="#{addRequirementController.requirementSelected.startTraining}"
+							pattern="dd-MM-yyyy" required="true"
+							requiredMessage="Debe seleccionar Fecha Inicio de Capacitación.">
+						</p:calendar>
+
+						<p:outputLabel value="Fecha Fin Capacitación"></p:outputLabel>
+						<p:calendar id="endTrainingDate"
+							value="#{addRequirementController.requirementSelected.endTraining}"
+							pattern="dd-MM-yyyy" required="true"
+							requiredMessage="Debe seleccionar Fecha Fin de Capacitación.">
+						</p:calendar>
+
+						<p:outputLabel value="Fecha Inicio OJT"></p:outputLabel>
+						<p:calendar id="startOjtDate"
+							value="#{addRequirementController.requirementSelected.startOjt}"
+							pattern="dd-MM-yyyy" required="true"
+							requiredMessage="Debe seleccionar Fecha Inicio de OJT.">
+						</p:calendar>
+						
+						<p:outputLabel value="Total"></p:outputLabel>
+						<p:outputLabel id="totalAmount" value="#{addRequirementController.requirementSelected.amount}"></p:outputLabel>
+
 
 					</h:panelGrid>
 
@@ -102,14 +119,14 @@
 									</p:selectOneMenu>
 
 									<p:outputLabel value="Cantidad"></p:outputLabel>
-									<p:spinner id="amount"
+									<p:spinner id="amount" min="1"
 										value="#{addRequirementController.amount}"></p:spinner>
 
 									<h:panelGrid style="margin:auto;text-align:center;">
 										<p:commandButton process="@this :form:recruiters :form:amount"
 											actionListener="#{addRequirementController.addRecruiter}"
 											value="Agregar Reclutador"
-											update=":form:recruitersTable :form:recruiters :form:amount :messages">
+											update=":form:recruitersTable :form:recruiters :form:amount :form:totalAmount :messages">
 										</p:commandButton>
 									</h:panelGrid>
 
@@ -129,7 +146,7 @@
 
 									<p:column>
 										<p:commandButton process=":form:recruitersTable"
-											update=":form:recruitersTable :messages" value="Eliminar"
+											update=":form:recruitersTable :form:totalAmount :messages" value="Eliminar"
 											actionListener="#{addRequirementController.deleteRecruiter(u)}">
 										</p:commandButton>
 									</p:column>
@@ -151,6 +168,8 @@
 
 				<h:panelGrid style="margin:auto;text-align:center;">
 					<p:commandButton actionListener="#{addRequirementController.add}"
+						process="@this :form:months :form:years :form:subAreas 
+					:form:startTrainingDate :form:endTrainingDate :form:startOjtDate"
 						value="Agregar Requerimiento" update="@form :messages">
 					</p:commandButton>
 				</h:panelGrid>

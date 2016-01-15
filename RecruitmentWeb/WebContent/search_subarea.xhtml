@@ -11,7 +11,7 @@
 
 	<ui:define name="metadata">
 		<f:metadata>
-			<f:viewAction action="#{searchAreaController.initialize}" />
+			<f:viewAction action="#{searchSubAreaController.initialize}" />
 		</f:metadata>
 	</ui:define>
 
@@ -21,7 +21,7 @@
 
 		<div class="title ui-widget-header ui-corner-all">
 			<h:panelGrid style="margin:auto;">
-		GESTIONAR AREAS
+		GESTIONAR SUBAREAS
 		</h:panelGrid>
 
 		</div>
@@ -31,32 +31,33 @@
 		</h:panelGrid>
 
 		<h:form id="form">
+		
 			
 			<h:panelGrid columns="3">
 			
 				<p:commandButton icon="ui-icon-plus" value="Agregar"
-					immediate="true" action="add_area.xhtml?faces-redirect=true">
+					immediate="true" action="add_subarea.xhtml?faces-redirect=true">
 				</p:commandButton>
 
 				<p:commandButton id="editButtom" immediate="true" 
 					icon="ui-icon-pencil" value="Editar" update=":messages"
-					actionListener="#{searchAreaController.edit}"
-					disabled="#{searchAreaController.areaSelected==null}">
+					actionListener="#{searchSubAreaController.edit}"
+					disabled="#{searchSubAreaController.subAreaSelected==null}">
 					<p:ajax event="dialogReturn" update=":form:searchTable"
-						listener="#{searchAreaController.afterEdit}" />
+						listener="#{searchSubAreaController.afterEdit}" />
 				</p:commandButton>
 				
 				<p:outputLabel id="entitySelectedId"
-					value="Seleccionado: #{searchAreaController.areaSelected!=null?searchAreaController.areaSelected.id:''}">
+					value="Seleccionado: #{searchSubAreaController.subAreaSelected!=null?searchSubAreaController.subAreaSelected.id:''}">
 				</p:outputLabel>
 				
 			</h:panelGrid>
 
 
-			<p:dataTable value="#{searchAreaController.areas}" var="e"
+			<p:dataTable value="#{searchSubAreaController.subAreas}" var="e"
 				rowKey="#{e.id}" paginator="true" rows="10" id="searchTable"
 				selectionMode="single" style="width:400px;"
-				selection="#{searchAreaController.areaSelected}">
+				selection="#{searchSubAreaController.subAreaSelected}">
 
 				<p:ajax event="rowSelect"
 					update=":form:entitySelectedId :form:editButtom" />
@@ -73,6 +74,10 @@
 
 				<p:column headerText="Nombres">
 					<h:outputText value="#{e.name}"></h:outputText>
+				</p:column>
+				
+				<p:column headerText="Area">
+					<h:outputText value="#{e.area.name}"></h:outputText>
 				</p:column>
 
 				<p:column headerText="Activo">
