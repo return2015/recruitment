@@ -31,6 +31,9 @@ public class InterviewState implements Serializable {
 	
 	@Column(name="is_goal")
 	private Boolean isGoal;
+	
+	@Column(name="is_scheduled")
+	private Boolean isScheduled;
 
 
 	public InterviewState() {
@@ -66,6 +69,14 @@ public class InterviewState implements Serializable {
 
 	public void setIsGoal(Boolean isGoal) {
 		this.isGoal = isGoal;
+	}
+
+	public Boolean getIsScheduled() {
+		return isScheduled;
+	}
+
+	public void setIsScheduled(Boolean isScheduled) {
+		this.isScheduled = isScheduled;
 	}
 
 	

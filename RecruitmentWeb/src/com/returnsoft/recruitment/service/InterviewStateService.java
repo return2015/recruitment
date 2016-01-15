@@ -10,7 +10,7 @@ public interface InterviewStateService {
 	
 	public List<InterviewState> findAll() throws ServiceException;
 	
-	public List<InterviewState> findIsPending() throws ServiceException;
+	public List<InterviewState> findIsPendingAndScheduled() throws ServiceException;
 	public InterviewState findById(Integer stateId) throws ServiceException;
 	
 

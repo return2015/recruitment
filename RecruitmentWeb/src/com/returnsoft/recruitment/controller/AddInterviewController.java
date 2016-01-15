@@ -115,6 +115,15 @@ public class AddInterviewController implements Serializable {
 	
 	private List<SelectItem> requirements;
 	private String requirementSelected;
+	
+	
+	private String areaSelected;
+	private String subAreaSelected;
+	
+	/////
+	
+	
+	
 
 	public String initialize() {
 		try {
@@ -123,7 +132,7 @@ public class AddInterviewController implements Serializable {
 				throw new UserLoggedNotFoundException();
 			}
 
-			List<InterviewState> interviewStatesEntity = interviewStateService.findIsPending();
+			List<InterviewState> interviewStatesEntity = interviewStateService.findIsPendingAndScheduled();
 			interviewStates = new ArrayList<SelectItem>();
 			for (InterviewState dto : interviewStatesEntity) {
 				SelectItem item = new SelectItem();
@@ -417,6 +426,26 @@ public class AddInterviewController implements Serializable {
 			facesUtil.sendErrorMessage(e.getClass().getSimpleName(), e.getMessage());
 		}
 	}
+	
+	public void onChangeRequirement(){
+		try {
+			if (requirementSelected!=null && requirementSelected.length()>0) {
+				Integer reqId = Integer.parseInt(requirementSelected);
+				Requirement req = requirementService.findById(reqId);
+				areaSelected =  req.getArea().getArea().getName();
+				subAreaSelected =  req.getArea().getName();
+			}else{
+				areaSelected ="";
+				subAreaSelected = "";
+			}
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			facesUtil.sendErrorMessage(e.getClass().getSimpleName(), e.getMessage());
+		}
+		
+	}
 
 	public void add() {
 		try {
@@ -529,9 +558,13 @@ public class AddInterviewController implements Serializable {
 
 			System.out.println("ingreso a onChangeState");
 			System.out.println(interviewStateSelected);
-			if (interviewStateSelected != null && !interviewStateSelected.equals("")) {
+			if (interviewStateSelected != null && interviewStateSelected.length()>0) {
+				
+				Integer interviewStateId = Integer.parseInt(interviewStateSelected);
+				
+				InterviewState interviewState = interviewStateService.findById(interviewStateId);
 
-				if (interviewStateSelected.equals("a")) {
+				if (interviewState.getIsScheduled()) {
 					isScheduled = Boolean.TRUE;
 					isPending = Boolean.FALSE;
 					inOnChange = Boolean.TRUE;
@@ -563,7 +596,7 @@ public class AddInterviewController implements Serializable {
 			System.out.println("ingreso a onChangeRecruitmentSource");
 			System.out.println(recruimentSourceSelected);
 
-			if (recruimentSourceSelected != null) {
+			if (recruimentSourceSelected != null && recruimentSourceSelected.length()>0) {
 
 				Integer recruitmentSourceId = Integer.parseInt(recruimentSourceSelected);
 
@@ -825,6 +858,22 @@ public class AddInterviewController implements Serializable {
 
 	public void setRequirementSelected(String requirementSelected) {
 		this.requirementSelected = requirementSelected;
+	}
+
+	public String getAreaSelected() {
+		return areaSelected;
+	}
+
+	public void setAreaSelected(String areaSelected) {
+		this.areaSelected = areaSelected;
+	}
+
+	public String getSubAreaSelected() {
+		return subAreaSelected;
+	}
+
+	public void setSubAreaSelected(String subAreaSelected) {
+		this.subAreaSelected = subAreaSelected;
 	}
 	
 	

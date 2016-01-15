@@ -197,13 +197,113 @@
 					<p:fieldset legend="DATOS DE ENTREVISTA">
 						<h:panelGrid columns="2">
 							<p:outputLabel value="Requerimiento"></p:outputLabel>
-
 							<p:selectOneMenu
-								value="#{addInterviewController.requirementSelected}"
-								required="true"
-								requiredMessage="Debe seleccionar Requerimiento">
+								value="#{addInterviewController.requirementSelected}">
+								<f:selectItem itemValue="" itemLabel="Seleccione..."></f:selectItem>
 								<f:selectItems value="#{addInterviewController.requirements}"></f:selectItems>
+								<p:ajax listener="#{addInterviewController.onChangeRequirement}"
+									update=":form:area :form:subArea :messages"></p:ajax>
 							</p:selectOneMenu>
+
+							<p:outputLabel value="Area"></p:outputLabel>
+							<h:panelGrid columns="4">
+								<p:outputLabel id="area" style="font-weight:bold;"
+									value="#{addInterviewController.areaSelected}"></p:outputLabel>
+								<p:spacer width="10" height="5"></p:spacer>
+								<p:outputLabel value="SubArea"></p:outputLabel>
+								<p:outputLabel id="subArea" style="font-weight:bold;"
+									value="#{addInterviewController.subAreaSelected}"></p:outputLabel>
+							</h:panelGrid>
+							<p:outputLabel value="Estado"></p:outputLabel>
+							<p:selectOneMenu
+								value="#{addInterviewController.interviewStateSelected}">
+								<f:selectItem itemValue="" itemLabel="Seleccione..."></f:selectItem>
+								<f:selectItems value="#{addInterviewController.interviewStates}"></f:selectItems>
+								<p:ajax listener="#{addInterviewController.onChangeState}"
+									update=":form:calendarLabel :form:calendarValue :messages"></p:ajax>
+							</p:selectOneMenu>
+
+							<h:panelGroup id="calendarLabel">
+								<p:outputLabel value="Fecha de agendamiento"
+									rendered="#{addInterviewController.isScheduled}"></p:outputLabel>
+								<p:outputLabel value="Fecha de entrevista"
+									rendered="#{addInterviewController.isPending}"></p:outputLabel>
+							</h:panelGroup>
+
+							<h:panelGroup id="calendarValue">
+								<p:calendar rendered="#{addInterviewController.isScheduled}"
+									value="#{addInterviewController.interviewSelected.scheduledAt}"
+									pattern="dd-MM-yyyy hh:mm:ss a" required="true" stepMinute="10"
+									requiredMessage="Debe seleccionar fecha de agendamiento">
+								</p:calendar>
+								<p:calendar rendered="#{addInterviewController.isPending}"
+									value="#{addInterviewController.interviewSelected.interviewedAt}"
+									pattern="dd-MM-yyyy hh:mm:ss a" required="true" stepMinute="10"
+									requiredMessage="Debe seleccionar fecha de entrevista.">
+								</p:calendar>
+							</h:panelGroup>
+
+
+							<p:outputLabel value="Fuente de reclutamiento"></p:outputLabel>
+							<p:selectOneMenu
+								value="#{addInterviewController.recruimentSourceSelected}">
+								<f:selectItem itemValue="" itemLabel="Seleccione"></f:selectItem>
+								<f:selectItems
+									value="#{addInterviewController.recruimentSources}"></f:selectItems>
+								<p:ajax
+									listener="#{addInterviewController.onChangeRecruitmentSource}"
+									update=":form:agentNameLabel :form:agentNameValue
+							:form:agentDocumentNumberLabel :form:agentDocumentNumberValue 
+							:form:agentCampaignLabel :form:agentCampaignValue
+							:messages"></p:ajax>
+							</p:selectOneMenu>
+
+
+
+							<h:panelGroup id="agentNameLabel">
+								<p:outputLabel value="Nombre de agente"
+									rendered="#{addInterviewController.isReferred or addInterviewController.isFlier}"></p:outputLabel>
+								<p:outputLabel value="Nombre de Feria"
+									rendered="#{addInterviewController.isJobFair}"></p:outputLabel>
+							</h:panelGroup>
+
+							<h:panelGroup id="agentNameValue">
+								<p:inputText style="width: 200px;"
+									rendered="#{addInterviewController.isReferred or addInterviewController.isFlier}"
+									value="#{addInterviewController.interviewSelected.agentName}"
+									required="true"
+									requiredMessage="Debe ingresar nombre de agente."></p:inputText>
+								<p:inputText style="width: 200px;"
+									rendered="#{addInterviewController.isJobFair}"
+									value="#{addInterviewController.interviewSelected.jobFairName}"
+									required="true"
+									requiredMessage="Debe ingresar nombre de feria."></p:inputText>
+							</h:panelGroup>
+
+							<h:panelGroup id="agentDocumentNumberLabel">
+								<p:outputLabel value="DNI"
+									rendered="#{addInterviewController.isReferred}"></p:outputLabel>
+							</h:panelGroup>
+
+							<h:panelGroup id="agentDocumentNumberValue">
+								<p:inputText style="width: 200px;"
+									rendered="#{addInterviewController.isReferred}"
+									value="#{addInterviewController.interviewSelected.agentDocumentNumber}"
+									required="true" requiredMessage="Debe ingresar DNI."></p:inputText>
+							</h:panelGroup>
+
+							<h:panelGroup id="agentCampaignLabel">
+								<p:outputLabel value="Campaña"
+									rendered="#{addInterviewController.isReferred}"></p:outputLabel>
+							</h:panelGroup>
+
+							<h:panelGroup id="agentCampaignValue">
+								<p:inputText style="width: 200px;"
+									rendered="#{addInterviewController.isReferred}"
+									value="#{addInterviewController.interviewSelected.agentCampaign}"
+									required="true" requiredMessage="Debe ingresar campaña."></p:inputText>
+							</h:panelGroup>
+
 
 
 						</h:panelGrid>

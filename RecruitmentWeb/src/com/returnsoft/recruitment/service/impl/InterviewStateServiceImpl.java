@@ -47,9 +47,9 @@ public class InterviewStateServiceImpl implements InterviewStateService {
 	
 	
 	@Override
-	public List<InterviewState> findIsPending() throws ServiceException {
+	public List<InterviewState> findIsPendingAndScheduled() throws ServiceException {
 		try {
-			List<InterviewState> entities = eao.findIsPending();
+			List<InterviewState> entities = eao.findIsPendingAndScheduled();
 			
 			return entities;
 		} catch (Exception e) {
