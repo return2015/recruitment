@@ -3,7 +3,9 @@ package com.returnsoft.recruitment.controller;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.ejb.EJB;
 import javax.faces.bean.ManagedBean;
@@ -11,6 +13,8 @@ import javax.faces.bean.ViewScoped;
 import javax.faces.model.SelectItem;
 import javax.inject.Inject;
 
+import org.primefaces.context.RequestContext;
+import org.primefaces.event.SelectEvent;
 import org.primefaces.model.LazyDataModel;
 
 import com.returnsoft.recruitment.entity.Area;
@@ -78,8 +82,8 @@ public class SearchInterviewController implements Serializable {
 	private Date createdAt;
 	private Date scheduledAt;
 	
-	private List<SelectItem> states;
-	private String stateSelected;
+	/*private List<SelectItem> states;
+	private String stateSelected;*/
 	
 	
 	
@@ -95,7 +99,7 @@ public class SearchInterviewController implements Serializable {
 		
 				//////////////////////////////////////////////////////////////
 
-				List<Area> areasDto = areaService.findAreasByRecruiter(sessionBean.getUser().getId());
+				List<Area> areasDto = areaService.findAreasParentActive();
 				areas = new ArrayList<SelectItem>();
 				for (Area areaDto : areasDto) {
 					SelectItem item = new SelectItem();
@@ -130,11 +134,11 @@ public class SearchInterviewController implements Serializable {
 
 		} catch (UserLoggedNotFoundException e) {
 			e.printStackTrace();
-			facesUtil.sendErrorMessage(e.getClass().getSimpleName(), e.getMessage());
+			facesUtil.sendErrorMessage(e.getMessage());
 			return "login.xhtml?faces-redirect=true";
 		} catch (Exception e) {
 			e.printStackTrace();
-			facesUtil.sendErrorMessage(e.getClass().getSimpleName(), e.getMessage());
+			facesUtil.sendErrorMessage(e.getMessage());
 			return null;
 		}
 	}
@@ -152,16 +156,16 @@ public class SearchInterviewController implements Serializable {
 
 			if (areaSelected != null && !areaSelected.equals("")) {
 
-				if (areaSelected.equals("t")) {
+				//if (areaSelected.equals("t")) {
 
 					if (areas != null && areas.size() > 0) {
 
-						Integer recruiterId = sessionBean.getUser().getId();
+						//Integer recruiterId = sessionBean.getUser().getId();
 						subAreas = new ArrayList<SelectItem>();
 
 						for (SelectItem areaItem : areas) {
 							Integer areaId = Integer.parseInt(areaItem.getValue().toString());
-							List<Area> areasEntity = areaService.findSubAreasByRecruiter(areaId, recruiterId);
+							List<Area> areasEntity = areaService.findAreasChildActive(areaId);
 							for (Area areaDto : areasEntity) {
 								SelectItem item = new SelectItem();
 								item.setValue(areaDto.getId());
@@ -173,7 +177,7 @@ public class SearchInterviewController implements Serializable {
 					} else {
 						subAreas = new ArrayList<SelectItem>();
 					}
-				} else {
+				/*} else {
 
 					Integer areaId = Integer.parseInt(areaSelected);
 					Integer recruiterId = sessionBean.getUser().getId();
@@ -186,7 +190,7 @@ public class SearchInterviewController implements Serializable {
 						item.setLabel(areaDto.getName());
 						subAreas.add(item);
 					}
-				}
+				}*/
 
 			} else {
 				subAreas = new ArrayList<SelectItem>();
@@ -216,10 +220,10 @@ public class SearchInterviewController implements Serializable {
 			 * + "!com.returnsoft.resource.service.CandidateInterface");
 			 */
 
-			/*Integer recruiterId = null;
+			Integer userId = null;
 			if (recruiterSelected != null && !recruiterSelected.equals("")) {
-				recruiterId = Integer.parseInt(recruiterSelected);
-			}*/
+				userId = Integer.parseInt(recruiterSelected);
+			}
 
 			//SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 			//String scheduledAtFormatter = null;
@@ -239,7 +243,7 @@ public class SearchInterviewController implements Serializable {
 
 			List<Integer> areasId = new ArrayList<Integer>();
 			if (areaSelected != null && !areaSelected.equals("")) {
-				if (areaSelected.equals("t")) {
+				/*if (areaSelected.equals("t")) {
 					if (areas != null && areas.size() > 0) {
 						for (SelectItem item : areas) {
 							areasId.add(Integer.parseInt(item.getValue().toString()));
@@ -247,15 +251,15 @@ public class SearchInterviewController implements Serializable {
 					} else {
 						areasId.add(0);
 					}
-				} else {
+				} else {*/
 					areasId.add(Integer.parseInt(areaSelected));
-				}
+				//}
 			}
 
 			List<Integer> subAreasId = new ArrayList<Integer>();
 			// System.out.println("subAreaSelected:" + subAreaSelected);
 			if (subAreaSelected != null && !subAreaSelected.equals("")) {
-				if (subAreaSelected.equals("t")) {
+				/*if (subAreaSelected.equals("t")) {
 					if (subAreas != null && subAreas.size() > 0) {
 						for (SelectItem item : subAreas) {
 							subAreasId.add(Integer.parseInt(item.getValue().toString()));
@@ -264,15 +268,15 @@ public class SearchInterviewController implements Serializable {
 						subAreasId.add(0);
 					}
 					// System.out.println(subAreasId.size());
-				} else {
+				} else {*/
 					// System.out.println("subAreaSelected:" + subAreaSelected);
 					subAreasId.add(Integer.parseInt(subAreaSelected));
-				}
+				//}
 			}
 
 			
 			  interviews = new InterviewLazyModel(interviewService,areasId,subAreasId,
-			  interviewStateId,scheduledAt, createdAt,documentNumber, names);
+			  interviewStateId,interviewedAt,scheduledAt, createdAt,documentNumber, names,userId);
 			 
 
 			interviewSelected = null;
@@ -282,6 +286,65 @@ public class SearchInterviewController implements Serializable {
 			facesUtil.sendErrorMessage(e.getMessage());
 		}
 	}
+	
+	public void edit() {
+		try {
+			
+			if (sessionBean == null || sessionBean.getUser() == null || sessionBean.getUser().getId() < 1) {
+				throw new UserLoggedNotFoundException();
+			}
+			
+			System.out.println("Ingreso a edit");
+			
+			if (!interviewSelected.getCreatedBy().getId().equals(sessionBean.getUser().getId())) {
+				throw new Exception("Solo puede editar sus entrevistas.");
+			}
+			
+			Map<String, Object> options = new HashMap<String, Object>();
+			options.put("modal", true);
+			options.put("draggable", true);
+			options.put("resizable", true);
+			options.put("contentHeight", 500);
+			options.put("contentWidth", 1000);
+
+			/*return "edit_user?faces-redirect=true&userId="
+					+ userSelected.getId();*/
+			Map<String, List<String>> paramMap = new HashMap<String, List<String>>();
+			ArrayList<String> paramList = new ArrayList<>();
+			paramList.add(String.valueOf(interviewSelected.getId()));
+			paramMap.put("interviewId", paramList);
+			RequestContext.getCurrentInstance().openDialog("edit_interview", options, paramMap);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			facesUtil.sendErrorMessage(e.getMessage());
+			//return null;
+		}
+	}
+	
+	public void afterEdit(SelectEvent event){
+		try {
+			Interview interviewReturn = (Interview) event.getObject();
+			
+			//int i = 0;
+			//for (Requirement requirement : interviews.) {
+				//Sale sale = sales.get(i);
+				//if (requirement.getId().equals(requirementReturn.getId())) {
+					//requirements.set(i, requirementReturn);
+					interviewSelected = interviewReturn;
+					//break;
+				//}
+				//i++;
+			//}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			facesUtil.sendErrorMessage(e.getMessage());
+			//return null;
+		}
+		
+	}
+	
 
 	public List<SelectItem> getInterviewStates() {
 		return interviewStates;
@@ -399,7 +462,7 @@ public class SearchInterviewController implements Serializable {
 		this.createdAt = createdAt;
 	}
 
-	public List<SelectItem> getStates() {
+	/*public List<SelectItem> getStates() {
 		return states;
 	}
 
@@ -413,7 +476,7 @@ public class SearchInterviewController implements Serializable {
 
 	public void setStateSelected(String stateSelected) {
 		this.stateSelected = stateSelected;
-	}
+	}*/
 
 	public Date getScheduledAt() {
 		return scheduledAt;

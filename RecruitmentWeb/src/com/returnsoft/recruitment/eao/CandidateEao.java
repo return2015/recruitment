@@ -1,10 +1,8 @@
 package com.returnsoft.recruitment.eao;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -12,10 +10,7 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 
-import com.returnsoft.recruitment.entity.Area;
 import com.returnsoft.recruitment.entity.Candidate;
-import com.returnsoft.recruitment.entity.CandidateState;
-import com.returnsoft.recruitment.entity.User;
 import com.returnsoft.recruitment.exception.EaoException;
 
 

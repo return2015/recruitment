@@ -13,11 +13,9 @@ import javax.inject.Inject;
 
 import org.primefaces.context.RequestContext;
 
-import com.returnsoft.recruitment.entity.Area;
 import com.returnsoft.recruitment.entity.User;
 import com.returnsoft.recruitment.enumeration.UserTypeEnum;
 import com.returnsoft.recruitment.exception.UserLoggedNotFoundException;
-import com.returnsoft.recruitment.service.AreaService;
 import com.returnsoft.recruitment.service.UserService;
 import com.returnsoft.recruitment.util.FacesUtil;
 import com.returnsoft.recruitment.util.SessionBean;
@@ -41,14 +39,14 @@ public class EditUserController implements Serializable {
 
 	private User userSelected;
 
-	private List<SelectItem> areas;
+	/*private List<SelectItem> areas;
 	private String areaSelected;
 
 	private List<SelectItem> subAreas;
 	private List<String> subAreasSelected;
 
 	@EJB
-	private AreaService areaService;
+	private AreaService areaService;*/
 
 	@EJB
 	private UserService userService;
@@ -82,7 +80,7 @@ public class EditUserController implements Serializable {
 			
 			//////////
 
-			List<Area> areasDto = areaService.findAreasParentActive();
+			/*List<Area> areasDto = areaService.findAreasParentActive();
 
 			areas = new ArrayList<SelectItem>();
 			for (Area areaDto : areasDto) {
@@ -90,7 +88,7 @@ public class EditUserController implements Serializable {
 				item.setValue(areaDto.getId().toString());
 				item.setLabel(areaDto.getName());
 				areas.add(item);
-			}
+			}*/
 
 			userTypes = new ArrayList<SelectItem>();
 			for (UserTypeEnum userType : UserTypeEnum.values()) {
@@ -116,7 +114,7 @@ public class EditUserController implements Serializable {
 		}
 	}
 	
-	public void searchSubAreas() {
+	/*public void searchSubAreas() {
 
 		try {
 
@@ -146,7 +144,7 @@ public class EditUserController implements Serializable {
 			e.printStackTrace();
 			facesUtil.sendErrorMessage(e.getMessage());
 		}
-	}
+	}*/
 	
 	
 	public void edit() {
@@ -175,7 +173,7 @@ public class EditUserController implements Serializable {
 		}
 	}
 	
-	public void addArea() {
+	/*public void addArea() {
 		try {
 
 			if (sessionBean == null || sessionBean.getUser() == null || sessionBean.getUser().getId() == null) {
@@ -210,27 +208,15 @@ public class EditUserController implements Serializable {
 				facesUtil.sendErrorMessage("Debe seleccionar subAreas");
 			}
 
-			/*
-			 * if (subAreaSelected!=null && subAreaSelected.length()>0) {
-			 * 
-			 * Integer subAreaId = Integer.parseInt(subAreaSelected); Boolean
-			 * exist=false; for (Area area : userSelected.getAreas()) { if
-			 * (area.getId().equals(subAreaId)) { exist=true; break; } } if
-			 * (exist) { facesUtil.sendErrorMessage(
-			 * "Area seleccionada ya esta agregada."); }else{ Area area =
-			 * areaService.findById(subAreaId);
-			 * userSelected.getAreas().add(area); subAreaSelected=""; }
-			 * 
-			 * }else{ facesUtil.sendErrorMessage("Debe seleccionar subArea"); }
-			 */
+			
 
 		} catch (Exception e) {
 			e.printStackTrace();
 			facesUtil.sendErrorMessage(e.getMessage());
 		}
-	}
+	}*/
 
-	public void deleteArea(Area area) {
+	/*public void deleteArea(Area area) {
 		try {
 
 			if (sessionBean == null || sessionBean.getUser() == null || sessionBean.getUser().getId() == null) {
@@ -253,7 +239,7 @@ public class EditUserController implements Serializable {
 			e.printStackTrace();
 			facesUtil.sendErrorMessage(e.getMessage());
 		}
-	}
+	}*/
 
 	public List<SelectItem> getUserTypes() {
 		return userTypes;
@@ -279,39 +265,6 @@ public class EditUserController implements Serializable {
 		this.userSelected = userSelected;
 	}
 
-	public List<SelectItem> getAreas() {
-		return areas;
-	}
-
-	public void setAreas(List<SelectItem> areas) {
-		this.areas = areas;
-	}
-
-	public String getAreaSelected() {
-		return areaSelected;
-	}
-
-	public void setAreaSelected(String areaSelected) {
-		this.areaSelected = areaSelected;
-	}
-
-	public List<SelectItem> getSubAreas() {
-		return subAreas;
-	}
-
-	public void setSubAreas(List<SelectItem> subAreas) {
-		this.subAreas = subAreas;
-	}
-
-	public List<String> getSubAreasSelected() {
-		return subAreasSelected;
-	}
-
-	public void setSubAreasSelected(List<String> subAreasSelected) {
-		this.subAreasSelected = subAreasSelected;
-	}
-
-	
 	
 	
 

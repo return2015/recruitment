@@ -31,9 +31,9 @@ public class InterviewStateEao {
 		}
 	}
 	
-	public List<InterviewState> findIsPendingAndScheduled()  throws EaoException{
+	public List<InterviewState> findIsPending()  throws EaoException{
 		try {
-			String query = "SELECT si FROM InterviewState si where si.isPending=1 or si.isScheduled=1 ";
+			String query = "SELECT si FROM InterviewState si where si.isPending=1  ";
 			TypedQuery<InterviewState> q = em.createQuery(query,
 					InterviewState.class);
 			List<InterviewState> entities = q.getResultList();

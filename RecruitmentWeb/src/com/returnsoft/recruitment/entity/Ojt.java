@@ -15,17 +15,19 @@ public class Ojt implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	//@GeneratedValue(strategy = GenerationType.IDENTITY)
+	//@Column(name="id")
 	private Long id;
 
-	private String comment;
+	/*@Column(name="comment")
+	private String comment;*/
 
-	@ManyToOne
+	@MapsId
+	@OneToOne
+	@JoinColumn(name="id")
 	private Training training;
 	
 	
-	
-
 	// bi-directional many-to-one association to OjtState
 	@ManyToOne
 	@JoinColumn(name = "ojt_state_id")
@@ -36,9 +38,9 @@ public class Ojt implements Serializable {
 	@JoinColumn(name = "recruiter_id")
 	private Recruiter recruiter;*/
 
-	@Temporal(TemporalType.TIMESTAMP)
+	/*@Temporal(TemporalType.TIMESTAMP)
 	@Column(name = "ojt_at")
-	private Date ojtAt;
+	private Date ojtAt;*/
 	
 	/*@Temporal(TemporalType.TIMESTAMP)
 	@Column(name = "ended_at")
@@ -47,6 +49,18 @@ public class Ojt implements Serializable {
 	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name = "created_at")
 	private Date createdAt;
+	
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "updated_at")
+	private Date updatedAt;
+	
+	@ManyToOne(fetch=FetchType.LAZY)
+	@JoinColumn(name="updated_by")
+	private User updatedBy;
+	
+	@ManyToOne(fetch=FetchType.LAZY)
+	@JoinColumn(name="created_by")
+	private User createdBy;
 
 	public Ojt() {
 	}
@@ -65,13 +79,13 @@ public class Ojt implements Serializable {
 
 
 
-	public String getComment() {
+	/*public String getComment() {
 		return this.comment;
 	}
 
 	public void setComment(String comment) {
 		this.comment = comment;
-	}
+	}*/
 
 	
 
@@ -100,13 +114,49 @@ public class Ojt implements Serializable {
 		this.createdAt = createdAt;
 	}
 
-	public Date getOjtAt() {
+
+
+	public Date getUpdatedAt() {
+		return updatedAt;
+	}
+
+
+
+	public void setUpdatedAt(Date updatedAt) {
+		this.updatedAt = updatedAt;
+	}
+
+
+
+	public User getUpdatedBy() {
+		return updatedBy;
+	}
+
+
+
+	public void setUpdatedBy(User updatedBy) {
+		this.updatedBy = updatedBy;
+	}
+
+
+
+	public User getCreatedBy() {
+		return createdBy;
+	}
+
+
+
+	public void setCreatedBy(User createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	/*public Date getOjtAt() {
 		return ojtAt;
 	}
 
 	public void setOjtAt(Date ojtAt) {
 		this.ojtAt = ojtAt;
-	}
+	}*/
 
 	/*public Date getEndedAt() {
 		return endedAt;

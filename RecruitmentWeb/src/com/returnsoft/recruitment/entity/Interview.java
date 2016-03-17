@@ -31,29 +31,40 @@ public class Interview implements Serializable {
 	@Column(name="created_at")
 	private Date createdAt;
 	
-	@ManyToOne
+	@ManyToOne(fetch=FetchType.LAZY)
 	@JoinColumn(name="created_by")
 	private User createdBy;
+	
+	
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name="updated_at")
+	private Date updatedAt;
+	
+	@ManyToOne(fetch=FetchType.LAZY)
+	@JoinColumn(name="updated_by")
+	private User updatedBy;
+	
 
 	@Column(name="comment")
 	private String comment;
 
-	@ManyToOne
+	@ManyToOne(fetch=FetchType.LAZY)
 	@JoinColumn(name="interview_state_id")
 	private InterviewState interviewState;
 
 	//bi-directional many-to-one association to Person
-	@ManyToOne
+	@ManyToOne(fetch=FetchType.LAZY)
 	@JoinColumn(name="candidate_id")
 	private Candidate candidate;
 	
-	@OneToOne(cascade = CascadeType.ALL, optional = false, fetch = FetchType.EAGER, orphanRemoval = true)
-	@PrimaryKeyJoinColumn
+	//@OneToOne(cascade = CascadeType.ALL, optional = false, fetch = FetchType.LAZY)
+	//@PrimaryKeyJoinColumn
+	@OneToOne(cascade = CascadeType.ALL, mappedBy="interview",fetch=FetchType.LAZY)
 	private Training training;
 	
-	@ManyToOne
+	/*@ManyToOne
 	@JoinColumn(name="user_id")
-	private User user;
+	private User user;*/
 	
 	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name = "scheduled_at")
@@ -71,13 +82,17 @@ public class Interview implements Serializable {
 	@Column(name = "job_fair_name")
 	private String jobFairName;
 	
-	@ManyToOne
+	@ManyToOne(fetch=FetchType.LAZY)
 	@JoinColumn(name = "recruitment_source_id")
 	private RecruitmentSource recruitmentSource;
 	
-	@ManyToOne
-	@JoinColumn(name = "requirement_id")
-	private Requirement requirement;
+	@ManyToOne(fetch=FetchType.LAZY)
+	//@JoinColumn(name = "requirement_id")
+	 @JoinColumns({
+	        @JoinColumn(name="user_id", referencedColumnName="user_id"),
+	        @JoinColumn(name="requirement_id", referencedColumnName="requirement_id")
+	    })
+	private RequirementUser requirementUser;
 	
 	
 
@@ -164,13 +179,7 @@ public class Interview implements Serializable {
 		this.training = training;
 	}
 
-	public User getUser() {
-		return user;
-	}
-
-	public void setUser(User user) {
-		this.user = user;
-	}
+	
 
 	public Date getScheduledAt() {
 		return scheduledAt;
@@ -225,12 +234,48 @@ public class Interview implements Serializable {
 
 
 
-	public Requirement getRequirement() {
+	/*public Requirement getRequirement() {
 		return requirement;
 	}
 
 	public void setRequirement(Requirement requirement) {
 		this.requirement = requirement;
+	}*/
+
+
+
+	public Date getUpdatedAt() {
+		return updatedAt;
+	}
+
+
+
+	public RequirementUser getRequirementUser() {
+		return requirementUser;
+	}
+
+
+
+	public void setRequirementUser(RequirementUser requirementUser) {
+		this.requirementUser = requirementUser;
+	}
+
+
+
+	public void setUpdatedAt(Date updatedAt) {
+		this.updatedAt = updatedAt;
+	}
+
+
+
+	public User getUpdatedBy() {
+		return updatedBy;
+	}
+
+
+
+	public void setUpdatedBy(User updatedBy) {
+		this.updatedBy = updatedBy;
 	}
 	
 	

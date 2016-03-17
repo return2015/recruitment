@@ -57,11 +57,11 @@ public class SearchUserController implements Serializable{
 			
 		} catch (UserLoggedNotFoundException e) {
 			e.printStackTrace();
-			facesUtil.sendErrorMessage(e.getClass().getSimpleName(), e.getMessage());
+			facesUtil.sendErrorMessage(e.getMessage());
 			return "login.xhtml?faces-redirect=true";
 		} catch (Exception e) {
 			e.printStackTrace();
-			facesUtil.sendErrorMessage(e.getClass().getSimpleName(), e.getMessage());
+			facesUtil.sendErrorMessage(e.getMessage());
 			return null;
 		}
 	}
@@ -73,7 +73,7 @@ public class SearchUserController implements Serializable{
 			
 		} catch (Exception e) {
 			e.printStackTrace();
-			facesUtil.sendErrorMessage(e.getClass().getSimpleName(), e.getMessage());
+			facesUtil.sendErrorMessage(e.getMessage());
 		}
 	}
 	
@@ -90,8 +90,8 @@ public class SearchUserController implements Serializable{
 			options.put("modal", true);
 			options.put("draggable", true);
 			options.put("resizable", true);
-			options.put("contentHeight", 400);
-			options.put("contentWidth", 1000);
+			options.put("contentHeight", 250);
+			options.put("contentWidth", 450);
 
 			/*return "edit_user?faces-redirect=true&userId="
 					+ userSelected.getId();*/
@@ -103,7 +103,7 @@ public class SearchUserController implements Serializable{
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			facesUtil.sendErrorMessage(e.getClass().getSimpleName(), e.getMessage());
+			facesUtil.sendErrorMessage(e.getMessage());
 			//return null;
 		}
 	}
@@ -125,7 +125,7 @@ public class SearchUserController implements Serializable{
 			
 		} catch (Exception e) {
 			e.printStackTrace();
-			facesUtil.sendErrorMessage(e.getClass().getSimpleName(), e.getMessage());
+			facesUtil.sendErrorMessage(e.getMessage());
 			//return null;
 		}
 		

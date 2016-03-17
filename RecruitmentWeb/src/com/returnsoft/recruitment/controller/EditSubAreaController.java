@@ -90,11 +90,11 @@ public class EditSubAreaController implements Serializable {
 			return null;
 		} catch (UserLoggedNotFoundException e) {
 			e.printStackTrace();
-			facesUtil.sendErrorMessage(e.getClass().getSimpleName(), e.getMessage());
+			facesUtil.sendErrorMessage(e.getMessage());
 			return "login.xhtml?faces-redirect=true";
 		} catch (Exception e) {
 			e.printStackTrace();
-			facesUtil.sendErrorMessage(e.getClass().getSimpleName(), e.getMessage());
+			facesUtil.sendErrorMessage(e.getMessage());
 			return null;
 		}
 	}

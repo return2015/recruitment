@@ -1,7 +1,6 @@
 package com.returnsoft.recruitment.entity;
 
 import java.io.Serializable;
-import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -9,7 +8,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
@@ -43,8 +41,8 @@ public class Area implements Serializable{
 	private User coordinator;
 
 	// bi-directional many-to-many association to Agent
-	@ManyToMany(mappedBy = "areas")
-	private List<User> recruiters;
+	/*@ManyToMany(mappedBy = "areas")
+	private List<User> recruiters;*/
 	
 	@Column(name = "is_active")
 	private Boolean isActive;
@@ -89,13 +87,7 @@ public class Area implements Serializable{
 		this.coordinator = coordinator;
 	}
 
-	public List<User> getRecruiters() {
-		return recruiters;
-	}
-
-	public void setRecruiters(List<User> recruiters) {
-		this.recruiters = recruiters;
-	}
+	
 
 	public Boolean getIsActive() {
 		return isActive;

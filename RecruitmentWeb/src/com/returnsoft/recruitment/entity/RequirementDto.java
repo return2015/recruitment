@@ -3,6 +3,9 @@ package com.returnsoft.recruitment.entity;
 import java.io.Serializable;
 import java.util.Date;
 
+import com.returnsoft.recruitment.enumeration.MonthEnum;
+import com.returnsoft.recruitment.enumeration.YearEnum;
+
 public class RequirementDto implements Serializable {
 
 	/**
@@ -11,13 +14,22 @@ public class RequirementDto implements Serializable {
 	private static final long serialVersionUID = 1L;
 	
 	private Integer id;
-	private Date period;
+	
+	private String code;
+	
+	private MonthEnum periodMonth;
+	private YearEnum periodYear;
+	
 	private Date startTraining;
 	private Date endTraining;
 	private Date startOjt;
-	private String area;
-	private String recruiter;
+	private Area area;
+	private User recruiter;
+	private Integer recruiterAmount;
 	private Integer amount;
+	
+	private Integer amountStartInterview;
+	private Integer amountEndInterview;
 	
 	private Integer amountStartTraining;
 	private Integer amountEndTraining;
@@ -48,9 +60,9 @@ public class RequirementDto implements Serializable {
 	
 	
 	
+	/*
 	
-	
-	/*public Double getStartTrainingRequisition() {
+	public Double getStartTrainingRequisition() {
 		System.out.println("Ingreso a getStartTrainingRequisition");
 		System.out.println(amountStartTraining);
 		System.out.println(amount);
@@ -99,8 +111,8 @@ public class RequirementDto implements Serializable {
 	public Double getEndOjtRequisition() {
 		endOjtRequisition=amountStartOjtGreater.doubleValue()/amount.doubleValue();
 		return endOjtRequisition;
-	}*/
-	
+	}
+	*/
 
 	
 	
@@ -160,17 +172,26 @@ public class RequirementDto implements Serializable {
 	public void setEndOjtRequisition(Double endOjtRequisition) {
 		this.endOjtRequisition = endOjtRequisition;
 	}
+	
+	
 	public Integer getId() {
 		return id;
 	}
 	public void setId(Integer id) {
 		this.id = id;
 	}
-	public Date getPeriod() {
-		return period;
+	
+	public MonthEnum getPeriodMonth() {
+		return periodMonth;
 	}
-	public void setPeriod(Date period) {
-		this.period = period;
+	public void setPeriodMonth(MonthEnum periodMonth) {
+		this.periodMonth = periodMonth;
+	}
+	public YearEnum getPeriodYear() {
+		return periodYear;
+	}
+	public void setPeriodYear(YearEnum periodYear) {
+		this.periodYear = periodYear;
 	}
 	public Date getStartTraining() {
 		return startTraining;
@@ -227,6 +248,42 @@ public class RequirementDto implements Serializable {
 	}
 	public void setAmountEndOjt(Integer amountEndOjt) {
 		this.amountEndOjt = amountEndOjt;
+	}
+	public Area getArea() {
+		return area;
+	}
+	public void setArea(Area area) {
+		this.area = area;
+	}
+	public User getRecruiter() {
+		return recruiter;
+	}
+	public void setRecruiter(User recruiter) {
+		this.recruiter = recruiter;
+	}
+	public Integer getRecruiterAmount() {
+		return recruiterAmount;
+	}
+	public void setRecruiterAmount(Integer recruiterAmount) {
+		this.recruiterAmount = recruiterAmount;
+	}
+	public String getCode() {
+		return code;
+	}
+	public void setCode(String code) {
+		this.code = code;
+	}
+	public Integer getAmountStartInterview() {
+		return amountStartInterview;
+	}
+	public void setAmountStartInterview(Integer amountStartInterview) {
+		this.amountStartInterview = amountStartInterview;
+	}
+	public Integer getAmountEndInterview() {
+		return amountEndInterview;
+	}
+	public void setAmountEndInterview(Integer amountEndInterview) {
+		this.amountEndInterview = amountEndInterview;
 	}
 	
 	

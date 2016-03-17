@@ -29,12 +29,15 @@ public class InterviewLazyModel extends LazyDataModel<Interview> {
 
 	private Date scheduledAt;
 	private Date createdAt;
+	private Date interviewedAt;
+	private Integer userId;
 	// PERSONAL DATA
 	private String documentNumber;
 	private String names;
+	
 
 	public InterviewLazyModel(InterviewService interviewService, List<Integer> areasId, List<Integer> subAreasId,
-			Integer interviewStateId, Date scheduledAt, Date createdAt, String documentNumber, String names) {
+			Integer interviewStateId, Date interviewedAt, Date scheduledAt, Date createdAt, String documentNumber, String names, Integer userId) {
 		super();
 
 		this.interviewService = interviewService;
@@ -43,6 +46,8 @@ public class InterviewLazyModel extends LazyDataModel<Interview> {
 		this.interviewStateId = interviewStateId;
 		this.scheduledAt = scheduledAt;
 		this.createdAt = createdAt;
+		this.interviewedAt = interviewedAt;
+		this.userId = userId;
 
 		this.documentNumber = documentNumber;
 		this.names = names;
@@ -67,6 +72,7 @@ public class InterviewLazyModel extends LazyDataModel<Interview> {
 		return super.getRowData();
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public Interview getRowData(String rowKey) {
 		Long interviewId = Long.parseLong(rowKey);
@@ -126,10 +132,10 @@ public class InterviewLazyModel extends LazyDataModel<Interview> {
 			 */
 
 			interviews = interviewService.findListLimit(areasId, subAreasId, interviewStateId,
-					scheduledAt, createdAt, documentNumber, names, first, pageSize);
+					interviewedAt, scheduledAt, createdAt, documentNumber, names,userId, first, pageSize);
 
 			Integer interviewsCount = interviewService.findListCount(areasId, subAreasId, interviewStateId,
-					scheduledAt, createdAt, documentNumber, names);
+					interviewedAt, scheduledAt, createdAt, documentNumber, names, userId);
 
 			this.setRowCount(interviewsCount);
 

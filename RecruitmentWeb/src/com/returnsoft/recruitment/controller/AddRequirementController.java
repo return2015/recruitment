@@ -122,11 +122,11 @@ public class AddRequirementController implements Serializable {
 
 		} catch (UserLoggedNotFoundException e) {
 			e.printStackTrace();
-			facesUtil.sendErrorMessage(e.getClass().getSimpleName(), e.getMessage());
+			facesUtil.sendErrorMessage(e.getMessage());
 			return "login.xhtml?faces-redirect=true";
 		} catch (Exception e) {
 			e.printStackTrace();
-			facesUtil.sendErrorMessage(e.getClass().getSimpleName(), e.getMessage());
+			facesUtil.sendErrorMessage(e.getMessage());
 			return null;
 		}
 	}
@@ -158,7 +158,7 @@ public class AddRequirementController implements Serializable {
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			facesUtil.sendErrorMessage(e.getClass().getSimpleName(), e.getMessage());
+			facesUtil.sendErrorMessage(e.getMessage());
 		}
 	}
 
@@ -225,7 +225,7 @@ public class AddRequirementController implements Serializable {
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			facesUtil.sendErrorMessage(e.getClass().getSimpleName(), e.getMessage());
+			facesUtil.sendErrorMessage(e.getMessage());
 		}
 	}
 	
@@ -258,7 +258,7 @@ public class AddRequirementController implements Serializable {
 			
 		} catch (Exception e) {
 			e.printStackTrace();
-			facesUtil.sendErrorMessage(e.getClass().getSimpleName(), e.getMessage());
+			facesUtil.sendErrorMessage(e.getMessage());
 		}
 	}
 

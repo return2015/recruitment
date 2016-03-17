@@ -8,6 +8,7 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -36,11 +37,7 @@ public class Requirement implements Serializable{
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	@Column(name="id")
 	private Integer id;
-	
-	/*@Temporal(TemporalType.TIMESTAMP)
-	@Column(name="period")
-	private Date period;*/
-	
+		
 	@Column(name="code")
 	private String code;
 	
@@ -64,15 +61,32 @@ public class Requirement implements Serializable{
 	@Column(name="start_ojt")
 	private Date startOjt;
 	
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name="request_date")
+	private Date requestDate;
+	
 	@Column(name="amount")
 	private Integer amount;
+
+	
+	/*private Integer amountStartInterview;
+	private Integer amountEndInterview;
+	private Integer amountStartTraining;
+	private Integer amountEndTraining;
+	private Integer amountStartOjt;
+	private Integer amountEndOjt;*/
+	
 
 	@ManyToOne
 	@JoinColumn(name="area_id")
 	private Area area;
 	
-	@OneToMany(mappedBy="requirement",cascade= CascadeType.ALL,orphanRemoval=true)
+	@OneToMany(mappedBy="requirement")
 	 private List<RequirementUser> users;
+	
+	/*@OneToMany(mappedBy="requirement",fetch=FetchType.LAZY)
+	private List<Interview> interviews;*/
+	
 	
 	@Column(name = "is_active")
 	private Boolean isActive;
@@ -84,6 +98,8 @@ public class Requirement implements Serializable{
 	@ManyToOne
 	@JoinColumn(name = "created_by")
 	private User createdBy;
+	
+
 	
 	
 
@@ -191,6 +207,22 @@ public class Requirement implements Serializable{
 	public void setCreatedBy(User createdBy) {
 		this.createdBy = createdBy;
 	}
+
+	public Date getRequestDate() {
+		return requestDate;
+	}
+
+	public void setRequestDate(Date requestDate) {
+		this.requestDate = requestDate;
+	}
+
+	/*public List<Interview> getInterviews() {
+		return interviews;
+	}
+
+	public void setInterviews(List<Interview> interviews) {
+		this.interviews = interviews;
+	}*/
 
 	
 

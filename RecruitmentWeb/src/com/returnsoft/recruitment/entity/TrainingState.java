@@ -22,8 +22,10 @@ public class TrainingState implements Serializable {
 
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	@Column(name="id")
 	private Integer id;
 
+	@Column(name="name")
 	private String name;
 	
 	@Column(name="is_pending")
@@ -31,6 +33,9 @@ public class TrainingState implements Serializable {
 	
 	@Column(name="is_goal")
 	private Boolean isGoal;
+	
+	@Column(name="is_ready")
+	private Boolean isReady;
 
 	public TrainingState() {
 	}
@@ -65,6 +70,14 @@ public class TrainingState implements Serializable {
 
 	public void setIsGoal(Boolean isGoal) {
 		this.isGoal = isGoal;
+	}
+
+	public Boolean getIsReady() {
+		return isReady;
+	}
+
+	public void setIsReady(Boolean isReady) {
+		this.isReady = isReady;
 	}
 
 	

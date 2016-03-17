@@ -1,10 +1,14 @@
 package com.returnsoft.recruitment.entity;
 
+import java.util.List;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 
@@ -23,6 +27,9 @@ public class RequirementUser {
 	
 	@Column(name="amount")
 	private Integer amount;
+	
+	@OneToMany(mappedBy="requirementUser",fetch=FetchType.LAZY)
+	private List<Interview> interviews;
 	
 	@ManyToOne
 	@PrimaryKeyJoinColumn(name="requirement_id", referencedColumnName="id")
@@ -70,6 +77,14 @@ public class RequirementUser {
 
 	public void setUser(User user) {
 		this.user = user;
+	}
+
+	public List<Interview> getInterviews() {
+		return interviews;
+	}
+
+	public void setInterviews(List<Interview> interviews) {
+		this.interviews = interviews;
 	}
 	
 	

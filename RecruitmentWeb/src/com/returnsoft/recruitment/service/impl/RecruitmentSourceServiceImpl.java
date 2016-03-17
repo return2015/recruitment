@@ -3,7 +3,6 @@ package com.returnsoft.recruitment.service.impl;
 import java.util.List;
 
 import javax.ejb.EJB;
-import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 
 import com.returnsoft.recruitment.eao.RecruitmentSourceEao;

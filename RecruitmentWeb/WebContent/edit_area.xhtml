@@ -36,16 +36,20 @@
 			<h:panelGrid rowClasses="panelgrid_center_row">
 
 				<h:panelGrid columns="2">
-				
+
 					<p:outputLabel value="Nombres"></p:outputLabel>
 					<p:inputText value="#{editAreaController.areaSelected.name}"
-						style="width:100px;"></p:inputText>
+						style="width:150px;"></p:inputText>
+
+					<p:outputLabel value="Código"></p:outputLabel>
+					<p:outputLabel value="#{editAreaController.areaSelected.code}"></p:outputLabel>
 
 					<p:outputLabel value="Estado"></p:outputLabel>
-					<p:selectBooleanCheckbox value="#{editAreaController.areaSelected.isActive}"
+					<p:selectBooleanCheckbox
+						value="#{editAreaController.areaSelected.isActive}"
 						required="true" requiredMessage="Debe seleccionar estado">
 					</p:selectBooleanCheckbox>
-					
+
 				</h:panelGrid>
 
 				<h:panelGrid style="margin:auto;text-align:center;">

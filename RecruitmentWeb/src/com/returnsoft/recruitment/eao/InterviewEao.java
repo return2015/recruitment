@@ -1,5 +1,6 @@
 package com.returnsoft.recruitment.eao;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -10,7 +11,6 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 
-import com.returnsoft.recruitment.entity.Candidate;
 import com.returnsoft.recruitment.entity.Interview;
 import com.returnsoft.recruitment.exception.EaoException;
 
@@ -19,6 +19,37 @@ public class InterviewEao {
 	
 	@PersistenceContext
 	private EntityManager em;
+	
+	public Interview edit(Interview interview) throws EaoException {
+		try {
+			
+			interview = em.merge(interview);
+			em.flush();
+			
+			return interview;
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new EaoException(e.getMessage());
+		}
+
+	}
+	
+	
+	public Interview findById(Long interviewId) throws EaoException {
+		try {
+			
+			Interview interview = em.find(Interview.class, interviewId);
+			return interview;
+
+		} catch (NoResultException e) {
+			return null;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new EaoException(e.getMessage());
+		}
+	}
+	
 	
 	public void add(Interview interview) throws EaoException {
 		try {
@@ -31,6 +62,29 @@ public class InterviewEao {
 			throw new EaoException(e.getMessage());
 		}
 
+	}
+	
+	public List<Interview> findByRequirementId(Integer requirementId)
+			throws EaoException {
+		try {
+			
+
+			String query = "select i "
+					+ "from Interview i "
+					+ "left join i.requirementUser ru "
+					+ "left join ru.requirement r "
+					+ "where r.id=:requirementId ";
+
+			TypedQuery<Interview> q = em.createQuery(query,Interview.class);
+			q.setParameter("requirementId", requirementId);
+			return q.getResultList();
+			
+		} catch (NoResultException e) {
+			return null;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new EaoException(e.getMessage());
+		}
 	}
 	
 	public List<Interview> findByCandidateId(Long candidateId)
@@ -116,9 +170,9 @@ public class InterviewEao {
 	
 	public List<Interview> findListLimit(List<Integer> areasId,
 			List<Integer> subAreasId, Integer interviewStateId,
-			Date scheduledAt, Date createdAt,
+			Date interviewedAt, Date scheduledAt, Date createdAt,
 			String documentNumber,
-			String names, Integer first, Integer limit ) throws EaoException {
+			String names, Integer userId, Integer first, Integer limit ) throws EaoException {
 
 		try {
 			
@@ -126,21 +180,24 @@ public class InterviewEao {
 			String query = "SELECT i "
 					+ "from Interview i " 
 					+ "left join i.interviewState ins "
-					+ "left join i.requirement r "
+					+ "left join i.requirementUser ru "
+					+ "left join ru.requirement r "
 					+ "left join r.area a "
 					+ "left join a.area ap "
 					+ "left join i.candidate c "
+					+ "left join i.createdBy u "
 					+ "WHERE i.id>0 ";
-			
-					/*+ "and (i.id=(select max(id) from interview where candidate_id=c.id) "
-					+ "or (select max(id) from interview where candidate_id=c.id) is null) ";*/
 
+			if (interviewedAt != null ) {
+				query += " and i.interviewedAt between :interviewedAtStart and :interviewedAtEnd ";
+			}
+			
 			if (scheduledAt != null ) {
-				query += " and i.scheduledAt = :scheduledAt ";
+				query += " and i.scheduledAt between :scheduledAtStart and :scheduledAtEnd ";
 			}
 			
 			if (createdAt != null) {
-				query += " and i.createdAt = :createdAt";
+				query += " and i.createdAt between :createdAtStart and :createdAtEnd ";
 			}
 
 			if (interviewStateId != null && interviewStateId > 0) {
@@ -156,21 +213,38 @@ public class InterviewEao {
 			} 
 
 			if (documentNumber != null && !documentNumber.trim().equals("")) {
-				query += " and c.document_number like :documentNumber";
+				query += " and c.documentNumber like :documentNumber";
 			}
 
 			if (names != null && names.trim().length()>0) {
 				query += " and (c.firstname like :names or c.lastname like :names)";
 			}
+			
+			if (userId!=null && userId>0) {
+				query += " and u.id=:userId ";
+			}
 
 			TypedQuery<Interview> q = em.createQuery(query,Interview.class);
 			
 			if (scheduledAt != null ) {
-				q.setParameter("scheduledAt", scheduledAt);
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+				SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+				q.setParameter("scheduledAtStart", sdf2.parse(sdf.format(scheduledAt)+" 00:00:00"));
+				q.setParameter("scheduledAtEnd", sdf2.parse(sdf.format(scheduledAt)+" 23:59:59"));
+			}
+			
+			if (interviewedAt != null ) {
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+				SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+				q.setParameter("interviewedAtStart", sdf2.parse(sdf.format(interviewedAt)+" 00:00:00"));
+				q.setParameter("interviewedAtEnd", sdf2.parse(sdf.format(interviewedAt)+" 23:59:59"));
 			}
 			
 			if (createdAt != null) {
-				q.setParameter("createdAt", createdAt);
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+				SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+				q.setParameter("createdAtStart", sdf2.parse(sdf.format(createdAt)+" 00:00:00"));
+				q.setParameter("createdAtEnd", sdf2.parse(sdf.format(createdAt)+" 23:59:59"));
 			}
 
 			if (interviewStateId != null && interviewStateId > 0) {
@@ -193,18 +267,14 @@ public class InterviewEao {
 				q.setParameter("names", names);
 			}
 			
-
+			if (userId!=null && userId>0) {
+				q.setParameter("userId", userId);
+			}
 			
-//			  if (areasId != null && areasId.size() > 0) {
-//			  q.setParameter("areasId", areasId); if (subAreasId != null &&
-//			  subAreasId.size() > 0) { q.setParameter("subAreasId",
-//			  subAreasId); } }
 			
 			q.setFirstResult(first);
 			q.setMaxResults(limit);
 			
-			q.getResultList();
-			 
 
 			List<Interview> interviews = q.getResultList();
 			
@@ -218,9 +288,9 @@ public class InterviewEao {
 	}
 	public Integer findListCount(List<Integer> areasId,
 			List<Integer> subAreasId, Integer interviewStateId,
-			Date scheduledAt, Date createdAt,
+			Date interviewedAt, Date scheduledAt, Date createdAt,
 			String documentNumber,
-			String names ) throws EaoException {
+			String names,Integer userId ) throws EaoException {
 
 		try {
 			
@@ -228,20 +298,26 @@ public class InterviewEao {
 			String query = "SELECT count(i.id) "
 					+ "from Interview i " 
 					+ "left join i.interviewState ins "
-					+ "left join i.requirement r "
+					+ "left join i.requirementUser ru "
+					+ "left join ru.requirement r "
 					+ "left join r.area a "
 					+ "left join a.area ap "
 					+ "left join i.candidate c "
+					+ "left join i.createdBy u "
 					+ "WHERE i.id>0 ";
 					/*+ "and (i.id=(select max(id) from interview where candidate_id=c.id) "
 					+ "or (select max(id) from interview where candidate_id=c.id) is null) ";*/
 
+			if (interviewedAt != null ) {
+				query += " and i.interviewedAt between :interviewedAtStart and :interviewedAtEnd ";
+			}
+			
 			if (scheduledAt != null ) {
-				query += " and i.scheduledAt = :scheduledAt ";
+				query += " and i.scheduledAt between :scheduledAtStart and :scheduledAtEnd ";
 			}
 			
 			if (createdAt != null) {
-				query += " and i.createdAt = :createdAt";
+				query += " and i.createdAt between :createdAtStart and :createdAtEnd ";
 			}
 
 			if (interviewStateId != null && interviewStateId > 0) {
@@ -257,21 +333,38 @@ public class InterviewEao {
 			} 
 
 			if (documentNumber != null && !documentNumber.trim().equals("")) {
-				query += " and c.document_number like :documentNumber";
+				query += " and c.documentNumber like :documentNumber";
 			}
 
 			if (names != null && names.trim().length()>0) {
 				query += " and (c.firstname like :names or c.lastname like :names)";
 			}
+			
+			if (userId!=null && userId>0) {
+				query += " and u.id=:userId ";
+			}
 
 			Query q = em.createQuery(query);
 			
 			if (scheduledAt != null ) {
-				q.setParameter("scheduledAt", scheduledAt);
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+				SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+				q.setParameter("scheduledAtStart", sdf2.parse(sdf.format(scheduledAt)+" 00:00:00"));
+				q.setParameter("scheduledAtEnd", sdf2.parse(sdf.format(scheduledAt)+" 23:59:59"));
+			}
+			
+			if (interviewedAt != null ) {
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+				SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+				q.setParameter("interviewedAtStart", sdf2.parse(sdf.format(interviewedAt)+" 00:00:00"));
+				q.setParameter("interviewedAtEnd", sdf2.parse(sdf.format(interviewedAt)+" 23:59:59"));
 			}
 			
 			if (createdAt != null) {
-				q.setParameter("createdAt", createdAt);
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+				SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+				q.setParameter("createdAtStart", sdf2.parse(sdf.format(createdAt)+" 00:00:00"));
+				q.setParameter("createdAtEnd", sdf2.parse(sdf.format(createdAt)+" 23:59:59"));
 			}
 
 			if (interviewStateId != null && interviewStateId > 0) {
@@ -292,6 +385,10 @@ public class InterviewEao {
 
 			if (names != null && names.trim().length()>0) {
 				q.setParameter("names", names);
+			}
+			
+			if (userId!=null && userId>0) {
+				q.setParameter("userId", userId);
 			}
 						
 			Long interviewsCount = (Long)q.getSingleResult();

@@ -9,9 +9,6 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
@@ -49,9 +46,9 @@ public class User implements
 	@Column(name = "is_active")
 	private Boolean isActive;
 	
-	@ManyToMany
+	/*@ManyToMany
 	@JoinTable(name = "user_area", joinColumns = { @JoinColumn(name = "user_id") }, inverseJoinColumns = { @JoinColumn(name = "area_id") })
-	private List<Area> areas;
+	private List<Area> areas;*/
 	
 	@Column(name = "type_id")
 	@Convert(converter = UserTypeConverter.class)
@@ -116,13 +113,13 @@ public class User implements
 
 	
 
-	public List<Area> getAreas() {
+	/*public List<Area> getAreas() {
 		return areas;
 	}
 
 	public void setAreas(List<Area> areas) {
 		this.areas = areas;
-	}
+	}*/
 
 	public UserTypeEnum getUserType() {
 		return userType;

@@ -71,7 +71,13 @@
 							<f:selectItems value="#{addRequirementController.subAreas}"></f:selectItems>
 						</p:selectOneMenu>
 
-
+						<p:outputLabel value="Fecha Solicitud"></p:outputLabel>
+						<p:calendar id="requestDate"
+							value="#{addRequirementController.requirementSelected.requestDate}"
+							pattern="dd-MM-yyyy" required="true"
+							requiredMessage="Debe seleccionar Fecha Solicitud.">
+						</p:calendar>
+						
 
 						<p:outputLabel value="Fecha Inicio Capacitación"></p:outputLabel>
 						<p:calendar id="startTrainingDate"
@@ -168,7 +174,7 @@
 
 				<h:panelGrid style="margin:auto;text-align:center;">
 					<p:commandButton actionListener="#{addRequirementController.add}"
-						process="@this :form:months :form:years :form:subAreas 
+						process="@this :form:months :form:years :form:subAreas :form:requestDate
 					:form:startTrainingDate :form:endTrainingDate :form:startOjtDate"
 						value="Agregar Requerimiento" update="@form :messages">
 					</p:commandButton>

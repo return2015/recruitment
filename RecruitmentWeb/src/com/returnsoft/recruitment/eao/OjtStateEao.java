@@ -29,13 +29,25 @@ public class OjtStateEao {
 		}
 	}
 	
-	public List<OjtState> findIsPending()  throws EaoException{
+	public OjtState findIsPending()  throws EaoException{
 		try {
-			String query = "SELECT os FROM OjtState os where os.isPending=true";
+			String query = "SELECT os FROM OjtState os where os.isPending=1";
 			TypedQuery<OjtState> q = em.createQuery(query,
 					OjtState.class);
-			List<OjtState> entities = q.getResultList();
-			return entities;
+			OjtState entity = q.getSingleResult();
+			return entity;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new EaoException(e.getMessage());
+		}
+	}
+	
+	public OjtState findById(Integer stateId) throws EaoException {
+		try {
+			OjtState state = em.find(OjtState.class, stateId);
+			
+			return state;
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new EaoException(e.getMessage());

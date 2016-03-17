@@ -4,7 +4,6 @@ package com.returnsoft.recruitment.service.impl;
 import java.util.List;
 
 import javax.ejb.EJB;
-import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 
 import com.returnsoft.recruitment.eao.OjtStateEao;
@@ -47,11 +46,11 @@ public class OjtStateServiceImpl implements OjtStateService {
 	
 	
 	@Override
-	public List<OjtState> findIsPending() throws ServiceException {
+	public OjtState findIsPending() throws ServiceException {
 		try {
-			List<OjtState> entities = eao.findIsPending();
+			OjtState entity = eao.findIsPending();
 			
-			return entities;
+			return entity;
 		} catch (Exception e) {
 			e.printStackTrace();
 			if (e.getMessage()!=null && e.getMessage().trim().length()>0) {
@@ -60,6 +59,26 @@ public class OjtStateServiceImpl implements OjtStateService {
 				throw new ServiceException();
 			}
 		}
+	}
+	
+	@Override
+	public OjtState findById(Integer stateId)
+			throws ServiceException {
+		try {
+			OjtState state = eao.findById(stateId);
+			
+			
+			return state;
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			if (e.getMessage()!=null && e.getMessage().trim().length()>0) {
+				throw new ServiceException(e.getMessage(), e);	
+			}else{
+				throw new ServiceException();
+			}
+		}
+		
 	}
 	
 

@@ -30,6 +30,20 @@ public class TrainingStateEao {
 		}
 	}
 	
+	public TrainingState findIsPendingNotReady()  throws EaoException{
+		try {
+			String query = "SELECT ts FROM TrainingState ts where ts.isReady=0 and ts.isPending=1";
+			TypedQuery<TrainingState> q = em.createQuery(query,
+					TrainingState.class);
+			TrainingState entity = q.getSingleResult();
+			return entity;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new EaoException(e.getMessage());
+		}
+	}
+	
+	
 	public List<TrainingState> findIsPending()  throws EaoException{
 		try {
 			String query = "SELECT ts FROM TrainingState ts where ts.isPending=true";

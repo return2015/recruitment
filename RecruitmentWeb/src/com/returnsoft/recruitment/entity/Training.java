@@ -17,18 +17,21 @@ public class Training implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	//@Column(name="id")
 	private Long id;
 
-	private String comment;
-	
-	@ManyToOne
+	/*@Column(name="comment")
+	private String comment;*/
+
+	@MapsId
+	@OneToOne
+	@JoinColumn(name="id")
 	private Interview interview;
 
 	//bi-directional many-to-one association to Recruiter
-	@ManyToOne
+	/*@ManyToOne
 	@JoinColumn(name="trainer_id")
-	private User trainer;
+	private User trainer;*/
 	
 	//bi-directional many-to-one association to TrainingState
 	@ManyToOne
@@ -39,13 +42,26 @@ public class Training implements Serializable {
 	@Column(name="created_at")
 	private Date createdAt;
 	
-	
 	@Temporal(TemporalType.TIMESTAMP)
-	@Column(name="training_at")
-	private Date trainingAt;
+	@Column(name="updated_at")
+	private Date updatedAt;
 	
-	@OneToOne(cascade = CascadeType.ALL, optional = false, fetch = FetchType.EAGER, orphanRemoval = true)
-	@PrimaryKeyJoinColumn
+	@ManyToOne(fetch=FetchType.LAZY)
+	@JoinColumn(name="updated_by")
+	private User updatedBy;
+	
+	@ManyToOne(fetch=FetchType.LAZY)
+	@JoinColumn(name="created_by")
+	private User createdBy;
+	
+	
+	/*@Temporal(TemporalType.TIMESTAMP)
+	@Column(name="training_at")
+	private Date trainingAt;*/
+	
+	//@OneToOne(cascade = CascadeType.ALL, optional = false, fetch = FetchType.EAGER, orphanRemoval = true)
+	//@PrimaryKeyJoinColumn
+	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY,mappedBy="training")
 	private Ojt ojt;
 	
 	
@@ -70,22 +86,22 @@ public class Training implements Serializable {
 
 
 
-	public String getComment() {
+	/*public String getComment() {
 		return this.comment;
 	}
 
 	public void setComment(String comment) {
 		this.comment = comment;
-	}
+	}*/
 	
 
-	public Date getTrainingAt() {
+	/*public Date getTrainingAt() {
 		return trainingAt;
 	}
 
 	public void setTrainingAt(Date trainingAt) {
 		this.trainingAt = trainingAt;
-	}
+	}*/
 
 	
 
@@ -113,13 +129,13 @@ public class Training implements Serializable {
 		this.createdAt = createdAt;
 	}
 
-	public User getTrainer() {
+	/*public User getTrainer() {
 		return trainer;
 	}
 
 	public void setTrainer(User trainer) {
 		this.trainer = trainer;
-	}
+	}*/
 
 	public Ojt getOjt() {
 		return ojt;
@@ -127,6 +143,42 @@ public class Training implements Serializable {
 
 	public void setOjt(Ojt ojt) {
 		this.ojt = ojt;
+	}
+
+
+
+	public Date getUpdatedAt() {
+		return updatedAt;
+	}
+
+
+
+	public void setUpdatedAt(Date updatedAt) {
+		this.updatedAt = updatedAt;
+	}
+
+
+
+	public User getUpdatedBy() {
+		return updatedBy;
+	}
+
+
+
+	public void setUpdatedBy(User updatedBy) {
+		this.updatedBy = updatedBy;
+	}
+
+
+
+	public User getCreatedBy() {
+		return createdBy;
+	}
+
+
+
+	public void setCreatedBy(User createdBy) {
+		this.createdBy = createdBy;
 	}
 
 	

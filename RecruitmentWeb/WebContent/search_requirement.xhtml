@@ -19,7 +19,7 @@
 
 		<div class="title ui-widget-header ui-corner-all">
 			<h:panelGrid style="margin:auto;">
-		BUSCAR REQUERIMIENTOS
+		GESTIONAR REQUERIMIENTOS
 		</h:panelGrid>
 
 		</div>
@@ -63,7 +63,7 @@
 						<f:selectItem itemValue="" itemLabel="Seleccione..."></f:selectItem>
 						<f:selectItems value="#{searchRequirementController.years}"></f:selectItems>
 					</p:selectOneMenu>
-					
+
 					<p:outputLabel value="Periodo Mes"></p:outputLabel>
 					<p:selectOneMenu id="months"
 						value="#{searchRequirementController.monthSelected}">
@@ -75,21 +75,21 @@
 				</h:panelGrid>
 				<h:panelGrid style="margin:auto;text-align:center;">
 					<p:commandButton icon="ui-icon-search"
-						actionListener="#{searchRequirementController.search}" value="Buscar"
-						process="@form"
-						update=":form:searchTable :form:requirementId :form:editButtom :messages">
+						actionListener="#{searchRequirementController.search}"
+						value="Buscar" process="@form"
+						update=":form:searchTable :form:requirementId :form:editButtom :form:interviewsButtom :form:trainingsButtom :form:ojtsButtom :messages">
 					</p:commandButton>
 				</h:panelGrid>
 			</h:panelGrid>
 
 
-			<h:panelGrid columns="4">
-			
+			<h:panelGrid columns="6">
+
 				<p:commandButton icon="ui-icon-plus" value="Agregar"
 					action="add_requirement?faces-redirect=true">
 				</p:commandButton>
-				
-				<p:commandButton id="editButtom" immediate="true" 
+
+				<p:commandButton id="editButtom" immediate="true"
 					icon="ui-icon-pencil" value="Editar" update=":messages"
 					actionListener="#{searchRequirementController.edit}"
 					disabled="#{searchRequirementController.requirementSelected==null}">
@@ -97,27 +97,51 @@
 						listener="#{searchRequirementController.afterEdit}" />
 				</p:commandButton>
 
+				<p:commandButton id="interviewsButtom"
+					actionListener="#{searchRequirementController.showInterviews}"
+					icon="ui-icon-search" value="Ver entrevistas"
+					oncomplete="PF('interviewsDialog').show()"
+					update=":formInterview:interviewsDetail"
+					disabled="#{searchRequirementController.requirementSelected==null}">
+				</p:commandButton>
+
+				<p:commandButton id="trainingsButtom"
+					actionListener="#{searchRequirementController.showTrainings}"
+					icon="ui-icon-search" value="Ver capacitaciones"
+					oncomplete="PF('trainingsDialog').show()"
+					update=":formTraining:trainingsDetail"
+					disabled="#{searchRequirementController.requirementSelected==null}">
+				</p:commandButton>
+
+				<p:commandButton id="ojtsButtom"
+					actionListener="#{searchRequirementController.showOjts}"
+					icon="ui-icon-search" value="Ver OJT's"
+					oncomplete="PF('ojtsDialog').show()" update=":formOjt:ojtsDetail"
+					disabled="#{searchRequirementController.requirementSelected==null}">
+				</p:commandButton>
+
+
 				<p:outputLabel id="requirementId"
 					value="Requerimiento seleccionado: #{searchRequirementController.requirementSelected!=null?searchRequirementController.requirementSelected.id:''}">
 				</p:outputLabel>
-				
-				
+
+
 			</h:panelGrid>
 
-			<p:dataTable value="#{searchRequirementController.requirements}" var="r"
-				rowKey="#{r.id}" paginator="true" rows="10" id="searchTable"
+			<p:dataTable value="#{searchRequirementController.requirements}"
+				var="r" rowKey="#{r.id}" paginator="true" rows="10" id="searchTable"
 				selectionMode="single"
 				selection="#{searchRequirementController.requirementSelected}">
 				<p:ajax event="rowSelect"
-					update=":form:requirementId :form:editButtom" />
+					update=":form:requirementId :form:editButtom :form:interviewsButtom :form:trainingsButtom :form:ojtsButtom" />
 				<p:ajax event="rowUnselect"
-					update=":form:requirementId :form:editButtom" />
+					update=":form:requirementId :form:editButtom :form:interviewsButtom :form:trainingsButtom :form:ojtsButtom" />
 
-				<p:column headerText="Id" >
+				<p:column headerText="Id">
 					<h:outputText value="#{r.id}"></h:outputText>
 				</p:column>
-				
-				<p:column headerText="Código" >
+
+				<p:column headerText="Código" width="120">
 					<h:outputText value="#{r.code}"></h:outputText>
 				</p:column>
 
@@ -125,56 +149,231 @@
 					<h:outputText value="#{r.periodMonth.name}">
 					</h:outputText>
 				</p:column>
-				
+
 				<p:column headerText="Periodo Año">
 					<h:outputText value="#{r.periodYear.name}">
 					</h:outputText>
 				</p:column>
 
-				<p:column headerText="Area" >
+				<p:column headerText="Area">
 					<h:outputText value="#{r.area.area.name}"></h:outputText>
 				</p:column>
 
-				<p:column headerText="SubArea" >
+				<p:column headerText="SubArea">
 					<h:outputText value="#{r.area.name}"></h:outputText>
 				</p:column>
 
-				<p:column headerText="Personal requerido" >
+				<p:column headerText="Personal requerido">
 					<h:outputText value="#{r.amount}"></h:outputText>
 				</p:column>
 
-				<p:column headerText="Inicio capacitacion">
+				<p:column headerText="Fecha solicitud">
+					<h:outputText value="#{r.requestDate}">
+						<f:convertDateTime pattern="dd-MM-yyyy" />
+					</h:outputText>
+				</p:column>
+
+				<p:column headerText="Inicio capacitación">
 					<h:outputText value="#{r.startTraining}">
 						<f:convertDateTime pattern="dd-MM-yyyy" />
 					</h:outputText>
 				</p:column>
 
-				<p:column headerText="Fin capacitacion" >
+				<p:column headerText="Fin capacitacion">
 					<h:outputText value="#{r.endTraining}">
 						<f:convertDateTime pattern="dd-MM-yyyy" />
 					</h:outputText>
 				</p:column>
 
-				<p:column headerText="Inicio OJT" >
+				<p:column headerText="Inicio OJT">
 					<h:outputText value="#{r.startOjt}">
 						<f:convertDateTime pattern="dd-MM-yyyy" />
 					</h:outputText>
 				</p:column>
-				
-				<p:column headerText="Activo" >
+
+				<p:column headerText="Activo">
 					<h:outputText value="#{r.isActive}"></h:outputText>
 				</p:column>
-				
-				<p:column headerText="Fecha creación" >
+
+				<p:column headerText="Fecha creación">
 					<h:outputText value="#{r.createdAt}">
 						<f:convertDateTime pattern="dd-MM-yyyy HH:mm:ss" />
 					</h:outputText>
 				</p:column>
-				
+
 			</p:dataTable>
 
 
 		</h:form>
+
+
+		<p:dialog header="Entrevistas" widgetVar="interviewsDialog"
+			showEffect="fade" hideEffect="fade" width="800" height="200">
+			<h:form id="formInterview">
+				<p:outputPanel id="interviewsDetail" style="text-align:center;">
+
+					<h:panelGrid style="margin:auto;">
+
+						<p:dataTable value="#{searchRequirementController.interviews}"
+							var="i" paginator="true" rows="5" id="interviewsTable">
+
+							<p:column headerText="ID">
+								<h:outputText value="#{i.id}"></h:outputText>
+							</p:column>
+
+							<p:column headerText="N° de documento">
+								<h:outputText value="#{i.candidate.documentNumber}"></h:outputText>
+							</p:column>
+
+							<p:column headerText="Nombres">
+								<h:outputText value="#{i.candidate.firstname}"></h:outputText>
+							</p:column>
+
+							<p:column headerText="Apellidos">
+								<h:outputText value="#{i.candidate.lastname}"></h:outputText>
+							</p:column>
+
+							<p:column headerText="Area">
+								<h:outputText value="#{i.requirementUser.requirement.area.area.name}"></h:outputText>
+							</p:column>
+
+							<p:column headerText="SubArea">
+								<h:outputText value="#{i.requirementUser.requirement.area.name}"></h:outputText>
+							</p:column>
+
+							<p:column headerText="Estado">
+								<h:outputText value="#{i.interviewState.name}"></h:outputText>
+							</p:column>
+
+							<p:column headerText="Fecha Agendamiento" width="120">
+								<h:outputText value="#{i.scheduledAt}">
+									<f:convertDateTime pattern="dd-MM-yyyy hh:mm:ss a" />
+								</h:outputText>
+							</p:column>
+
+							<p:column headerText="Fecha Entrevista" width="120">
+								<h:outputText value="#{i.interviewedAt}">
+									<f:convertDateTime pattern="dd-MM-yyyy hh:mm:ss a" />
+								</h:outputText>
+							</p:column>
+
+						</p:dataTable>
+
+					</h:panelGrid>
+				</p:outputPanel>
+			</h:form>
+		</p:dialog>
+
+
+		<p:dialog header="Capacitaciones" widgetVar="trainingsDialog"
+			showEffect="fade" hideEffect="fade" width="800" height="200">
+			<h:form id="formTraining">
+				<p:outputPanel id="trainingsDetail" style="text-align:center;">
+
+					<h:panelGrid style="margin:auto;">
+
+						<p:dataTable value="#{searchRequirementController.trainings}"
+							var="t" paginator="true" rows="5" id="interviewsTable">
+
+							<p:column headerText="ID">
+								<h:outputText value="#{t.id}"></h:outputText>
+							</p:column>
+
+							<p:column headerText="DNI">
+								<h:outputText value="#{t.interview.candidate.documentNumber}"></h:outputText>
+							</p:column>
+
+							<p:column headerText="Nombres">
+								<h:outputText value="#{t.interview.candidate.firstname}"></h:outputText>
+							</p:column>
+
+							<p:column headerText="Apellidos">
+								<h:outputText value="#{t.interview.candidate.lastname}"></h:outputText>
+							</p:column>
+
+							<p:column headerText="Area">
+								<h:outputText value="#{t.interview.requirementUser.requirement.area.area.name}"></h:outputText>
+							</p:column>
+
+							<p:column headerText="Subarea">
+								<h:outputText value="#{t.interview.requirementUser.requirement.area.name}"></h:outputText>
+							</p:column>
+
+							<p:column headerText="Estado">
+								<h:outputText value="#{t.trainingState.name}"></h:outputText>
+							</p:column>
+
+
+							<p:column headerText="Fecha Capacitación" width="120">
+								<h:outputText value="#{t.interview.requirementUser.requirement.startTraining}">
+									<f:convertDateTime pattern="dd-MM-yyyy" />
+								</h:outputText>
+							</p:column>
+
+						</p:dataTable>
+
+					</h:panelGrid>
+				</p:outputPanel>
+			</h:form>
+		</p:dialog>
+
+
+		<p:dialog header="OJT's" widgetVar="ojtsDialog" showEffect="fade"
+			hideEffect="fade" width="800" height="200">
+			<h:form id="formOjt">
+				<p:outputPanel id="ojtsDetail" style="text-align:center;">
+
+					<h:panelGrid style="margin:auto;">
+
+						<p:dataTable value="#{searchRequirementController.ojts}" var="o"
+							paginator="true" rows="5" id="ojtsTable">
+
+							<p:column headerText="ID">
+								<h:outputText value="#{o.id}"></h:outputText>
+							</p:column>
+
+							<p:column headerText="DNI">
+								<h:outputText
+									value="#{o.training.interview.candidate.documentNumber}"></h:outputText>
+							</p:column>
+
+							<p:column headerText="Nombres">
+								<h:outputText
+									value="#{o.training.interview.candidate.firstname}"></h:outputText>
+							</p:column>
+
+							<p:column headerText="Apellidos">
+								<h:outputText value="#{o.training.interview.candidate.lastname}"></h:outputText>
+							</p:column>
+
+							<p:column headerText="Area">
+								<h:outputText
+									value="#{o.training.interview.requirementUser.requirement.area.area.name}"></h:outputText>
+							</p:column>
+
+							<p:column headerText="Subarea">
+								<h:outputText
+									value="#{o.training.interview.requirementUser.requirement.area.name}"></h:outputText>
+							</p:column>
+
+							<p:column headerText="Estado">
+								<h:outputText value="#{o.ojtState.name}"></h:outputText>
+							</p:column>
+
+
+							<p:column headerText="Fecha Ojt" width="120">
+								<h:outputText
+									value="#{ojt.training.interview.requirementUser.requirement.startOjt}">
+									<f:convertDateTime pattern="dd-MM-yyyy" />
+								</h:outputText>
+							</p:column>
+						</p:dataTable>
+
+					</h:panelGrid>
+				</p:outputPanel>
+			</h:form>
+		</p:dialog>
+
 	</ui:define>
 
 </ui:composition>

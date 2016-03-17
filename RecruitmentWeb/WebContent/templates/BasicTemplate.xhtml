@@ -23,10 +23,12 @@
 		<p:menubar rendered="#{sessionBean.user!=null or sessionBean.isAdmin}"
 			styleClass="centeredMenuBar">
 			<p:menuitem value="Inicio" outcome="/home.xhtml" icon="ui-icon-star" />
-			<p:menuitem value="Postulantes" outcome="/search_candidate.xhtml"
-				rendered="#{sessionBean.user!=null}" icon="ui-icon-star" />
 			<p:menuitem value="Entrevistas" outcome="/search_interview.xhtml"
 				rendered="#{sessionBean.user!=null}" icon="ui-icon-star" />	
+			<p:menuitem value="Capacitaciones" outcome="/search_training.xhtml"
+				rendered="#{sessionBean.user!=null}" icon="ui-icon-star" />
+			<p:menuitem value="Ojts" outcome="/search_ojt.xhtml"
+				rendered="#{sessionBean.user!=null}" icon="ui-icon-star" />			
 			<p:menuitem value="Requerimientos"
 				outcome="/search_requirement.xhtml"
 				rendered="#{sessionBean.user!=null}" icon="ui-icon-star" />
@@ -39,6 +41,16 @@
 				<p:menuitem value="SubAreas" outcome="/search_subarea.xhtml"
 					icon="ui-icon-star" />	
 			</p:submenu>
+			
+			<p:submenu label="Reportes" icon="ui-icon-star" >
+				<p:menuitem value="Requerimientos detallado" outcome="/report_requirement_detail.xhtml"
+					icon="ui-icon-star" />
+				<p:menuitem value="Requerimientos por reclutador" outcome="/report_requirement_summary_by_recruiter.xhtml"
+					icon="ui-icon-star" />
+				<p:menuitem value="Requerimientos por coordinador" outcome="/report_requirement_summary_by_coordinator.xhtml"
+					icon="ui-icon-star" />	
+			</p:submenu>
+			
 				
 			<p:menuitem value="Salir" action="#{loginController.doLogout}"
 				icon="ui-icon-star" />

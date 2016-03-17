@@ -4,7 +4,6 @@ package com.returnsoft.recruitment.service.impl;
 import java.util.List;
 
 import javax.ejb.EJB;
-import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 
 import com.returnsoft.recruitment.eao.TrainingStateEao;
@@ -46,6 +45,23 @@ public class TrainingStateServiceImpl implements TrainingStateService {
 	}
 	
 	@Override
+	public TrainingState findIsPendingNotReady() throws ServiceException {
+		try {
+			TrainingState entity = eao.findIsPendingNotReady();
+			
+			return entity;
+		} catch (Exception e) {
+			e.printStackTrace();
+			if (e.getMessage()!=null && e.getMessage().trim().length()>0) {
+				throw new ServiceException(e.getMessage(), e);	
+			}else{
+				throw new ServiceException();
+			}
+		}
+	}
+	
+	
+	/*@Override
 	public List<TrainingState> findIsPending() throws ServiceException {
 		try {
 			List<TrainingState> entities = eao.findIsPending();
@@ -59,7 +75,7 @@ public class TrainingStateServiceImpl implements TrainingStateService {
 				throw new ServiceException();
 			}
 		}
-	}
+	}*/
 	
 	@Override
 	public TrainingState findById(Integer stateId)

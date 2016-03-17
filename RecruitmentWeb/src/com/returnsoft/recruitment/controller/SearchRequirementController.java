@@ -17,14 +17,20 @@ import org.primefaces.context.RequestContext;
 import org.primefaces.event.SelectEvent;
 
 import com.returnsoft.recruitment.entity.Area;
+import com.returnsoft.recruitment.entity.Interview;
+import com.returnsoft.recruitment.entity.Ojt;
 import com.returnsoft.recruitment.entity.Requirement;
+import com.returnsoft.recruitment.entity.Training;
 import com.returnsoft.recruitment.entity.User;
 import com.returnsoft.recruitment.enumeration.MonthEnum;
 import com.returnsoft.recruitment.enumeration.UserTypeEnum;
 import com.returnsoft.recruitment.enumeration.YearEnum;
 import com.returnsoft.recruitment.exception.UserLoggedNotFoundException;
 import com.returnsoft.recruitment.service.AreaService;
+import com.returnsoft.recruitment.service.InterviewService;
+import com.returnsoft.recruitment.service.OjtService;
 import com.returnsoft.recruitment.service.RequirementService;
+import com.returnsoft.recruitment.service.TrainingService;
 import com.returnsoft.recruitment.service.UserService;
 import com.returnsoft.recruitment.util.FacesUtil;
 import com.returnsoft.recruitment.util.SessionBean;
@@ -55,6 +61,15 @@ public class SearchRequirementController implements Serializable {
 	@EJB
 	private UserService userService;
 	
+	@EJB
+	private InterviewService interviewService;
+	
+	@EJB
+	private TrainingService trainingService;
+	
+	@EJB
+	private OjtService ojtService;
+	
 	private String areaSelected;
 	private String subAreaSelected;
 	
@@ -73,6 +88,12 @@ public class SearchRequirementController implements Serializable {
 	private Date period;
 	
 	private Requirement requirementSelected;
+	
+	////
+	
+	private List<Interview> interviews;
+	private List<Training> trainings;
+	private List<Ojt> ojts;
 	
 	
 	public String initialize(){
@@ -123,14 +144,55 @@ public class SearchRequirementController implements Serializable {
 			
 		} catch (UserLoggedNotFoundException e) {
 			e.printStackTrace();
-			facesUtil.sendErrorMessage(e.getClass().getSimpleName(), e.getMessage());
+			facesUtil.sendErrorMessage(e.getMessage());
 			return "login.xhtml?faces-redirect=true";
 		} catch (Exception e) {
 			e.printStackTrace();
-			facesUtil.sendErrorMessage(e.getClass().getSimpleName(), e.getMessage());
+			facesUtil.sendErrorMessage(e.getMessage());
 			return null;
 		}
 	}
+	
+	public void showInterviews() {
+
+		try {
+
+			interviews = interviewService.findByRequirement(requirementSelected.getId());
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			facesUtil.sendErrorMessage(e.getMessage());
+		}
+
+	}
+	
+	public void showTrainings() {
+
+		try {
+
+			trainings = trainingService.findByRequirement(requirementSelected.getId());
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			facesUtil.sendErrorMessage(e.getMessage());
+		}
+
+	}
+	
+	public void showOjts() {
+
+		try {
+
+			ojts = ojtService.findByRequirement(requirementSelected.getId());
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			facesUtil.sendErrorMessage(e.getMessage());
+		}
+
+	}
+	
+	
 	
 	public void search() {
 
@@ -215,7 +277,7 @@ public class SearchRequirementController implements Serializable {
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			facesUtil.sendErrorMessage(e.getClass().getSimpleName(), e.getMessage());
+			facesUtil.sendErrorMessage(e.getMessage());
 		}
 	}
 	
@@ -241,7 +303,7 @@ public class SearchRequirementController implements Serializable {
 			
 		} catch (Exception e) {
 			e.printStackTrace();
-			facesUtil.sendErrorMessage(e.getClass().getSimpleName(), e.getMessage());
+			facesUtil.sendErrorMessage(e.getMessage());
 		}
 	}
 	
@@ -272,7 +334,7 @@ public class SearchRequirementController implements Serializable {
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			facesUtil.sendErrorMessage(e.getClass().getSimpleName(), e.getMessage());
+			facesUtil.sendErrorMessage(e.getMessage());
 			//return null;
 		}
 	}
@@ -294,7 +356,7 @@ public class SearchRequirementController implements Serializable {
 			
 		} catch (Exception e) {
 			e.printStackTrace();
-			facesUtil.sendErrorMessage(e.getClass().getSimpleName(), e.getMessage());
+			facesUtil.sendErrorMessage(e.getMessage());
 			//return null;
 		}
 		
@@ -404,6 +466,30 @@ public class SearchRequirementController implements Serializable {
 
 	public void setMonthSelected(String monthSelected) {
 		this.monthSelected = monthSelected;
+	}
+
+	public List<Interview> getInterviews() {
+		return interviews;
+	}
+
+	public void setInterviews(List<Interview> interviews) {
+		this.interviews = interviews;
+	}
+
+	public List<Training> getTrainings() {
+		return trainings;
+	}
+
+	public void setTrainings(List<Training> trainings) {
+		this.trainings = trainings;
+	}
+
+	public List<Ojt> getOjts() {
+		return ojts;
+	}
+
+	public void setOjts(List<Ojt> ojts) {
+		this.ojts = ojts;
 	}
 	
 	

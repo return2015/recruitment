@@ -4,13 +4,19 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.ejb.EJB;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ViewScoped;
+import javax.faces.context.FacesContext;
 import javax.faces.model.SelectItem;
 import javax.inject.Inject;
+
+import org.primefaces.context.RequestContext;
+import org.primefaces.event.SelectEvent;
 
 import com.returnsoft.recruitment.entity.Candidate;
 import com.returnsoft.recruitment.entity.Country;
@@ -22,16 +28,19 @@ import com.returnsoft.recruitment.entity.InterviewState;
 import com.returnsoft.recruitment.entity.Province;
 import com.returnsoft.recruitment.entity.RecruitmentSource;
 import com.returnsoft.recruitment.entity.Requirement;
+import com.returnsoft.recruitment.entity.RequirementUser;
 import com.returnsoft.recruitment.exception.UserLoggedNotFoundException;
 import com.returnsoft.recruitment.service.CandidateService;
 import com.returnsoft.recruitment.service.CountryService;
 import com.returnsoft.recruitment.service.DepartmentService;
 import com.returnsoft.recruitment.service.DistrictService;
 import com.returnsoft.recruitment.service.EducationLevelService;
+import com.returnsoft.recruitment.service.InterviewService;
 import com.returnsoft.recruitment.service.InterviewStateService;
 import com.returnsoft.recruitment.service.ProvinceService;
 import com.returnsoft.recruitment.service.RecruitmentSourceService;
 import com.returnsoft.recruitment.service.RequirementService;
+import com.returnsoft.recruitment.service.RequirementUserService;
 import com.returnsoft.recruitment.util.FacesUtil;
 import com.returnsoft.recruitment.util.SessionBean;
 
@@ -49,24 +58,6 @@ public class AddInterviewController implements Serializable {
 
 	@Inject
 	private SessionBean sessionBean;
-
-	private Interview interviewSelected;
-
-	private List<SelectItem> interviewStates;
-	private String interviewStateSelected;
-
-	private List<SelectItem> countries;
-	private String countrySelected;
-	private List<SelectItem> departments;
-	private String departmentSelected;
-	private List<SelectItem> provinces;
-	private String provinceSelected;
-	private List<SelectItem> districts;
-	private String districtSelected;
-	private List<SelectItem> recruimentSources;
-	private String recruimentSourceSelected;
-	private List<SelectItem> educationLevels;
-	private String educationLevelSelected;
 
 	@EJB
 	private InterviewStateService interviewStateService;
@@ -88,42 +79,52 @@ public class AddInterviewController implements Serializable {
 
 	@EJB
 	private DistrictService districtService;
-	
+
 	@EJB
 	private CandidateService candidateService;
-	
+
 	@EJB
 	private RequirementService requirementService;
+	
+	@EJB
+	private RequirementUserService requirementUserService;
+
+	@EJB
+	private InterviewService interviewService;
 
 	private String age;
 	private Date minDate;
 	private Date maxDate;
 
-	private Boolean isJobFair;
-	private Boolean isFlier;
-	private Boolean isReferred;
-
-	private Boolean isScheduled;
-	private Boolean isPending;
-	private Boolean inOnChange;
-	
-	private String info;
+	//private String info;
 	private String documentNumber;
-	
-	
+	//private String areaSelected;
+	//private String subAreaSelected;
+	private Boolean validation;
+	private String passwordSupervisor;
+
 	///////
-	
+
+	private Interview interviewSelected;
+
+	private List<SelectItem> interviewStates;
+	private String interviewStateSelected;
+	private List<SelectItem> countries;
+	private String countrySelected;
+	private List<SelectItem> departments;
+	private String departmentSelected;
+	private List<SelectItem> provinces;
+	private String provinceSelected;
+	private List<SelectItem> districts;
+	private String districtSelected;
+	private List<SelectItem> recruitmentSources;
+	private String recruitmentSourceSelected;
+	private List<SelectItem> educationLevels;
+	private String educationLevelSelected;
 	private List<SelectItem> requirements;
 	private String requirementSelected;
-	
-	
-	private String areaSelected;
-	private String subAreaSelected;
-	
+
 	/////
-	
-	
-	
 
 	public String initialize() {
 		try {
@@ -132,7 +133,7 @@ public class AddInterviewController implements Serializable {
 				throw new UserLoggedNotFoundException();
 			}
 
-			List<InterviewState> interviewStatesEntity = interviewStateService.findIsPendingAndScheduled();
+			List<InterviewState> interviewStatesEntity = interviewStateService.findIsPending();
 			interviewStates = new ArrayList<SelectItem>();
 			for (InterviewState dto : interviewStatesEntity) {
 				SelectItem item = new SelectItem();
@@ -152,12 +153,12 @@ public class AddInterviewController implements Serializable {
 			}
 
 			List<RecruitmentSource> recruimentSourcesDto = recruimentSourceService.findAll();
-			recruimentSources = new ArrayList<SelectItem>();
+			recruitmentSources = new ArrayList<SelectItem>();
 			for (RecruitmentSource recruimentSourceDto : recruimentSourcesDto) {
 				SelectItem item = new SelectItem();
 				item.setValue(recruimentSourceDto.getId().toString());
 				item.setLabel(recruimentSourceDto.getName());
-				recruimentSources.add(item);
+				recruitmentSources.add(item);
 			}
 
 			List<EducationLevel> educationLevelsDto = educationLevelService.findAll();
@@ -168,7 +169,7 @@ public class AddInterviewController implements Serializable {
 				item.setLabel(educationLevelDto.getName());
 				educationLevels.add(item);
 			}
-			
+
 			List<Requirement> requirementsDto = requirementService.findByRecruiter(sessionBean.getUser().getId());
 			requirements = new ArrayList<SelectItem>();
 			for (Requirement requirementDto : requirementsDto) {
@@ -177,108 +178,199 @@ public class AddInterviewController implements Serializable {
 				item.setLabel(requirementDto.getCode());
 				requirements.add(item);
 			}
-			
 
 			Date today = new Date();
 			Calendar calendarMin = Calendar.getInstance();
 			calendarMin.setTime(today);
 			calendarMin.set(Calendar.YEAR, calendarMin.get(Calendar.YEAR) - 50);
 			this.minDate = calendarMin.getTime();
-			// System.out.println("minDate" + minDate);
 			Calendar calendarMax = Calendar.getInstance();
 			calendarMax.setTime(today);
 			calendarMax.set(Calendar.YEAR, calendarMax.get(Calendar.YEAR) - 18);
 			this.maxDate = calendarMax.getTime();
-			// System.out.println("maxDate" + maxDate);
 
-			interviewSelected = new Interview();
-			interviewSelected.setCandidate(new Candidate());
+			reset();
 
 			return null;
 
 		} catch (UserLoggedNotFoundException e) {
 			e.printStackTrace();
-			facesUtil.sendErrorMessage(e.getClass().getSimpleName(), e.getMessage());
+			facesUtil.sendErrorMessage(e.getMessage());
 			return "login.xhtml?faces-redirect=true";
 		} catch (Exception e) {
 			e.printStackTrace();
-			facesUtil.sendErrorMessage(e.getClass().getSimpleName(), e.getMessage());
+			facesUtil.sendErrorMessage(e.getMessage());
 			return null;
 		}
 	}
-	
-	public void searchCandidate(){
+
+	public void searchCandidate() {
 		try {
-			
+
 			System.out.println("ingreso a searchCandidate");
+			// System.out.println(interviewSelected.getCandidate().getDocumentNumber());
+
+			if (sessionBean == null || sessionBean.getUser() == null || sessionBean.getUser().getId() == null) {
+				throw new UserLoggedNotFoundException();
+			}
+
+			System.out.println("documentNumber:" + documentNumber);
+
+			if (documentNumber != null && documentNumber.length() > 0) {
+				// throw new Exception("Ingrese número de documento");
+
+				Candidate candidateFound = candidateService.findByDocumentNumber(documentNumber);
+				if (candidateFound != null) {
+
+					System.out.println("Ingreso aqui1");
+
+					if (candidateFound.getInterview() != null
+							&& candidateFound.getInterview().getInterviewState() != null
+							&& (candidateFound.getInterview().getInterviewState().getIsPending()
+									|| candidateFound.getInterview().getInterviewState().getIsScheduled())) {
+
+						validation = Boolean.FALSE;
+						
+						/* -- */
+
+						throw new Exception("Tiene entrevistas pendientes.");
+
+					} else {
+						
+						//RequestContext context = RequestContext.getCurrentInstance();
+						//context.execute("PF('passSuperDialog').show();");
+						
+						Map<String, Object> options = new HashMap<String, Object>();
+						options.put("modal", true);
+						options.put("draggable", true);
+						options.put("resizable", true);
+						options.put("contentHeight", 200);
+						options.put("contentWidth", 300);
+
+						/*return "edit_user?faces-redirect=true&userId="
+								+ userSelected.getId();*/
+						/*Map<String, List<String>> paramMap = new HashMap<String, List<String>>();
+						ArrayList<String> paramList = new ArrayList<>();
+						paramList.add(String.valueOf(interviewSelected.getId()));
+						paramMap.put("interviewId", paramList);*/
+						RequestContext.getCurrentInstance().openDialog("validate_password_supervisor", options, null);
+						
+						
+						
+						/*validation = Boolean.TRUE;
+						interviewSelected.setCandidate(candidateFound);
+						calculateAge();
+						if (candidateFound.getCountry() != null) {
+							countrySelected = candidateFound.getCountry().getId().toString();
+						}
+						if (candidateFound.getDepartment() != null) {
+							departmentSelected = candidateFound.getDepartment().getId().toString();
+						}
+						if (candidateFound.getProvince() != null) {
+							provinceSelected = candidateFound.getProvince().getId().toString();
+						}
+						if (candidateFound.getDistrict() != null) {
+							districtSelected = candidateFound.getDistrict().getId().toString();
+						}
+						if (candidateFound.getEducationLevel() != null) {
+							educationLevelSelected = candidateFound.getEducationLevel().getId().toString();
+						}*/
+					}
+
+				} else {
+					validation = Boolean.TRUE;
+					interviewSelected.getCandidate().setDocumentNumber(documentNumber);
+				}
+
+			} else {
+				validation = Boolean.FALSE;
+				throw new Exception("Ingrese Número de Documento.");
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			facesUtil.sendErrorMessage(e.getMessage());
+		}
+	}
+	
+	public void afterValidation(SelectEvent event){
+		try {
+			Boolean responseReturn = (Boolean) event.getObject();
+			
+			if (responseReturn) {
+				validation = Boolean.TRUE;
+				Candidate candidateFound = candidateService.findByDocumentNumber(documentNumber);
+				interviewSelected.setCandidate(candidateFound);
+				calculateAge();
+				if (candidateFound.getCountry() != null) {
+					countrySelected = candidateFound.getCountry().getId().toString();
+				}
+				if (candidateFound.getDepartment() != null) {
+					departmentSelected = candidateFound.getDepartment().getId().toString();
+				}
+				if (candidateFound.getProvince() != null) {
+					provinceSelected = candidateFound.getProvince().getId().toString();
+				}
+				if (candidateFound.getDistrict() != null) {
+					districtSelected = candidateFound.getDistrict().getId().toString();
+				}
+				if (candidateFound.getEducationLevel() != null) {
+					educationLevelSelected = candidateFound.getEducationLevel().getId().toString();
+				}
+			}else{
+				facesUtil.sendErrorMessage("¡Password Supervisor Incorrecto!");
+			}
+			
+			//int i = 0;
+			//for (Requirement requirement : interviews.) {
+				//Sale sale = sales.get(i);
+				//if (requirement.getId().equals(requirementReturn.getId())) {
+					//requirements.set(i, requirementReturn);
+					//interviewSelected = interviewReturn;
+					//break;
+				//}
+				//i++;
+			//}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			facesUtil.sendErrorMessage(e.getMessage());
+			//return null;
+		}
+		
+	}
+	
+	public void changeDocumentNumber(){
+		try {
 			
 			if (sessionBean == null || sessionBean.getUser() == null || sessionBean.getUser().getId() == null) {
 				throw new UserLoggedNotFoundException();
 			}
 			
-			if (documentNumber!=null && documentNumber.length()>0) {
-				Candidate candidateFound = candidateService.findByDocumentNumber(documentNumber);
-				if (candidateFound!=null) {
-					info = "Postulante "+candidateFound.getId();
-					interviewSelected.setCandidate(candidateFound);
-					calculateAge();
-					if (candidateFound.getCountry()!=null) {
-						countrySelected=candidateFound.getCountry().getId().toString();
-					}
-					if (candidateFound.getDepartment()!=null) {
-						departmentSelected=candidateFound.getDepartment().getId().toString();
-					}
-					if (candidateFound.getProvince()!=null) {
-						provinceSelected=candidateFound.getProvince().getId().toString();
-					}
-					if (candidateFound.getDistrict()!=null) {
-						districtSelected=candidateFound.getDistrict().getId().toString();
-					}
-					if (candidateFound.getEducationLevel()!=null) {
-						educationLevelSelected=candidateFound.getEducationLevel().getId().toString();
-					}
-					
-				}else{
-					info = "Nuevo Postulante.";
-					interviewSelected.setCandidate(new Candidate());
-					countrySelected="";
-					departmentSelected="";
-					provinceSelected="";
-					districtSelected="";
-					educationLevelSelected="";
-				}
-			}else{
-				facesUtil.sendErrorMessage("Ingrese número de documento.");	
-			}
+			validation=Boolean.FALSE;
 			
 		} catch (Exception e) {
 			e.printStackTrace();
-			facesUtil.sendErrorMessage(e.getClass().getSimpleName(), e.getMessage());
+			facesUtil.sendErrorMessage(e.getMessage());
 		}
 	}
 
 	public void searchDepartments() {
 
-		// System.out.println("ingreso a
-		// searchsubdepartments"+departmentSelected);
 		try {
 
 			if (sessionBean == null || sessionBean.getUser() == null || sessionBean.getUser().getId() == null) {
 				throw new UserLoggedNotFoundException();
 			}
 
-			if (countrySelected != null) {
+			countrySelected = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap()
+					.get("form:country_input");
+
+			System.out.println("countrySelected:" + countrySelected);
+
+			if (countrySelected != null && countrySelected.length() > 0) {
 
 				Integer countryId = Integer.parseInt(countrySelected);
-				// /System.out.println(departmentId);
-				// if (countryId > 0) {
-
-				/*
-				 * DepartmentInterface departmentService = (DepartmentInterface)
-				 * new InitialContext( Util.getInitProperties()) .lookup(
-				 * "java:global/RecruitmentEAR/RecruitmentEJB/DepartmentBean" +
-				 * "!com.returnsoft.resource.service.DepartmentInterface");
-				 */
 
 				List<Department> departmentsDto = departmentService.findByCountry(countryId);
 
@@ -292,7 +384,6 @@ public class AddInterviewController implements Serializable {
 
 				provinces = new ArrayList<SelectItem>();
 				districts = new ArrayList<SelectItem>();
-				// }
 
 			} else {
 				departments = new ArrayList<SelectItem>();
@@ -301,36 +392,24 @@ public class AddInterviewController implements Serializable {
 			}
 
 		} catch (Exception e) {
-			/*
-			 * if (!(e instanceof RecruitmentException) && !(e instanceof
-			 * SecurityExcepcion)) { e.printStackTrace(); }
-			 */
+
 			e.printStackTrace();
-			facesUtil.sendErrorMessage(e.getClass().getSimpleName(), e.getMessage());
+			facesUtil.sendErrorMessage(e.getMessage());
 		}
 	}
 
 	public void searchProvinces() {
 
-		// System.out.println("ingreso a
-		// searchsubdepartments"+departmentSelected);
 		try {
 
 			if (sessionBean == null || sessionBean.getUser() == null || sessionBean.getUser().getId() == null) {
 				throw new UserLoggedNotFoundException();
 			}
 
-			// /System.out.println(departmentId);
 			if (departmentSelected != null) {
 
 				Integer departmentId = Integer.parseInt(departmentSelected);
 
-				/*
-				 * ProvinceInterface provinceService = (ProvinceInterface) new
-				 * InitialContext( Util.getInitProperties()) .lookup(
-				 * "java:global/RecruitmentEAR/RecruitmentEJB/ProvinceBean" +
-				 * "!com.returnsoft.resource.service.ProvinceInterface");
-				 */
 				List<Province> provincesDto = provinceService.findByDepartment(departmentId);
 
 				provinces = new ArrayList<SelectItem>();
@@ -349,35 +428,23 @@ public class AddInterviewController implements Serializable {
 			}
 
 		} catch (Exception e) {
-			/*
-			 * if (!(e instanceof RecruitmentException) && !(e instanceof
-			 * SecurityExcepcion)) { e.printStackTrace(); }
-			 */
+
 			e.printStackTrace();
-			facesUtil.sendErrorMessage(e.getClass().getSimpleName(), e.getMessage());
+			facesUtil.sendErrorMessage(e.getMessage());
 		}
 	}
 
 	public void searchDistricts() {
 
-		// System.out.println("ingreso a
-		// searchsubdepartments"+departmentSelected);
 		try {
 
 			if (sessionBean == null || sessionBean.getUser() == null || sessionBean.getUser().getId() == null) {
 				throw new UserLoggedNotFoundException();
 			}
 
-			// /System.out.println(departmentId);
 			if (provinceSelected != null) {
 
 				Integer provinceId = Integer.parseInt(provinceSelected);
-				/*
-				 * DistrictInterface districtService = (DistrictInterface) new
-				 * InitialContext( Util.getInitProperties()) .lookup(
-				 * "java:global/RecruitmentEAR/RecruitmentEJB/DistrictBean" +
-				 * "!com.returnsoft.resource.service.DistrictInterface");
-				 */
 				List<District> districtsDto = districtService.findByProvince(provinceId);
 
 				districts = new ArrayList<SelectItem>();
@@ -395,14 +462,12 @@ public class AddInterviewController implements Serializable {
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			facesUtil.sendErrorMessage(e.getClass().getSimpleName(), e.getMessage());
+			facesUtil.sendErrorMessage(e.getMessage());
 		}
 	}
 
 	public void calculateAge() {
 		try {
-
-			System.out.println("ingreso a calculate Age");
 
 			if (sessionBean == null || sessionBean.getUser() == null || sessionBean.getUser().getId() == null) {
 				throw new UserLoggedNotFoundException();
@@ -423,28 +488,60 @@ public class AddInterviewController implements Serializable {
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			facesUtil.sendErrorMessage(e.getClass().getSimpleName(), e.getMessage());
+			facesUtil.sendErrorMessage(e.getMessage());
 		}
 	}
-	
-	public void onChangeRequirement(){
+
+	public void onChangeRequirement() {
 		try {
-			if (requirementSelected!=null && requirementSelected.length()>0) {
+
+			requirementSelected = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap()
+					.get("form:requirement_input");
+
+			if (requirementSelected != null && requirementSelected.length() > 0) {
 				Integer reqId = Integer.parseInt(requirementSelected);
-				Requirement req = requirementService.findById(reqId);
-				areaSelected =  req.getArea().getArea().getName();
-				subAreaSelected =  req.getArea().getName();
-			}else{
-				areaSelected ="";
-				subAreaSelected = "";
+				RequirementUser reqUser = requirementUserService.findById(reqId,sessionBean.getUser().getId());
+				interviewSelected.setRequirementUser(reqUser);
+				/*areaSelected = req.getArea().getArea().getName();
+				subAreaSelected = req.getArea().getName();*/
+			} else {
+				interviewSelected.setRequirementUser(null);
+				//areaSelected = "";
+				//subAreaSelected = "";
 			}
-			
-			
+
 		} catch (Exception e) {
 			e.printStackTrace();
-			facesUtil.sendErrorMessage(e.getClass().getSimpleName(), e.getMessage());
+			facesUtil.sendErrorMessage(e.getMessage());
 		}
+
+	}
+
+	public void reset() {
+
+		interviewSelected = new Interview();
+		interviewSelected.setCandidate(new Candidate());
+		countrySelected = "";
+		departmentSelected = "";
+		departments = null;
+		provinceSelected = "";
+		provinces = null;
+		districtSelected = "";
+		districts = null;
+		educationLevelSelected = "";
+
+		//
+
+		requirementSelected = null;
+		//info = "";
+		age = "";
+		interviewStateSelected = "";
+		recruitmentSourceSelected = "";
 		
+		
+		
+		validation=Boolean.FALSE;
+
 	}
 
 	public void add() {
@@ -454,98 +551,119 @@ public class AddInterviewController implements Serializable {
 				throw new UserLoggedNotFoundException();
 			}
 
-			/*
-			 * if (countrySelected != null && countrySelected.length() > 0) {
-			 * Integer countryId = Integer.parseInt(countrySelected); Country
-			 * country = new Country(); country.setId(countryId);
-			 * candidateSelected.setCountry(country); }
-			 * 
-			 * if (departmentSelected != null && departmentSelected.length() >
-			 * 0) { Integer departmentId = Integer.parseInt(departmentSelected);
-			 * Department department = new Department();
-			 * department.setId(departmentId);
-			 * candidateSelected.setDepartment(department); }
-			 * 
-			 * if (provinceSelected != null && provinceSelected.length() > 0) {
-			 * Integer provinceId = Integer.parseInt(provinceSelected); Province
-			 * province = new Province(); province.setId(provinceId);
-			 * candidateSelected.setProvince(province); }
-			 * 
-			 * if (districtSelected != null && districtSelected.length() > 0) {
-			 * Integer districtId = Integer.parseInt(districtSelected); District
-			 * district = new District(); district.setId(districtId);
-			 * candidateSelected.setDistrict(district); }
-			 */
+			if (interviewSelected != null && interviewSelected.getCandidate() != null) {
 
-			/*
-			 * if (recruimentSourceSelected != null &&
-			 * recruimentSourceSelected.length() > 0) { Integer
-			 * recruimentSourceId = Integer.parseInt(recruimentSourceSelected);
-			 * RecruimentSource recruimentSource = new RecruimentSource();
-			 * recruimentSource.setId(recruimentSourceId);
-			 * candidateSelected.setRecruimentSource(recruimentSource); }
-			 */
+				////
 
-			/*
-			 * if (educationLevelSelected != null &&
-			 * educationLevelSelected.length() > 0) { Integer educationLevelId =
-			 * Integer.parseInt(educationLevelSelected); EducationLevel
-			 * educationLevel = new EducationLevel();
-			 * educationLevel.setId(educationLevelId);
-			 * candidateSelected.setEducationLevel(educationLevel); }
-			 */
+				if (interviewSelected.getCandidate().getDocumentNumber() != null
+						&& interviewSelected.getCandidate().getDocumentNumber().length() > 0) {
+					Candidate candidateFound = candidateService
+							.findByDocumentNumber(interviewSelected.getCandidate().getDocumentNumber());
+					if (candidateFound != null) {
+						if (candidateFound.getInterview() != null
+								&& candidateFound.getInterview().getInterviewState() != null
+								&& (candidateFound.getInterview().getInterviewState().getIsPending()
+										|| candidateFound.getInterview().getInterviewState().getIsScheduled())) {
 
-			/*
-			 * if (subAreaSelected != null && subAreaSelected.length() > 0) {
-			 * Integer subAreaId = Integer.parseInt(subAreaSelected); Area
-			 * subArea = new Area(); subArea.setId(subAreaId);
-			 * candidateSelected.setArea(subArea); }
-			 */
+							throw new Exception("El postulante tiene entrevistas pendientes");
 
-			/*
-			 * if (interviewStateSelected != null &&
-			 * interviewStateSelected.length() > 0 &&
-			 * interviewStateSelected.equals("a")) {
-			 * candidateSelected.setScheduledAt(scheduledAt); }
-			 */
+						}
 
-			/*
-			 * User user = sessionBean.getUser();
-			 * candidateSelected.setCreatedBy(user);
-			 * candidateSelected.setCreatedAt(new Date());
-			 */
+					}
+				}
 
-			// candidateService.add(candidateSelected);
+				if (countrySelected != null && countrySelected.length() > 0) {
+					Integer countryId = Integer.parseInt(countrySelected);
+					Country country = new Country();
+					country.setId(countryId);
+					interviewSelected.getCandidate().setCountry(country);
+				}
 
-			// String confirmMessage = "Se creó satisfactoriamente el candidato
-			// con id:" + candidateSelected.getId();
+				if (departmentSelected != null && departmentSelected.length() > 0) {
+					Integer departmentId = Integer.parseInt(departmentSelected);
+					Department department = new Department();
+					department.setId(departmentId);
+					interviewSelected.getCandidate().setDepartment(department);
+				}
 
-			// CandidateStateDto state = new CandidateStateDto();
-			/*
-			 * if (interviewStateSelected != null &&
-			 * interviewStateSelected.length() > 0 &&
-			 * !interviewStateSelected.equals("a")) { Interview interview = new
-			 * Interview(); interview.setCreatedBy(user);
-			 * interview.setCandidate(candidateSelected);
-			 * interview.setCreatedAt(new Date());
-			 * interview.setInterviewedAt(interviewedAt); InterviewState
-			 * interviewStateDto = new InterviewState();
-			 * interviewStateDto.setId(Integer.parseInt(interviewStateSelected))
-			 * ; interview.setInterviewState(interviewStateDto);
-			 * candidateSelected.setInterview(interview); //confirmMessage +=
-			 * " y entrevista con id:" + interview.getId(); }
-			 */
+				if (provinceSelected != null && provinceSelected.length() > 0) {
+					Integer provinceId = Integer.parseInt(provinceSelected);
+					Province province = new Province();
+					province.setId(provinceId);
+					interviewSelected.getCandidate().setProvince(province);
+				}
 
-			// candidateService.add(candidateSelected);
+				if (districtSelected != null && districtSelected.length() > 0) {
+					Integer districtId = Integer.parseInt(districtSelected);
+					District district = new District();
+					district.setId(districtId);
+					interviewSelected.getCandidate().setDistrict(district);
+				}
 
-			// SE IMPRIME MENSAJE DE CONFIRMACION
-			facesUtil.sendConfirmMessage("Se creó satisfactoriamente.");
+				if (educationLevelSelected != null && educationLevelSelected.length() > 0) {
+					Integer educationLevelId = Integer.parseInt(educationLevelSelected);
+					EducationLevel educationLevel = new EducationLevel();
+					educationLevel.setId(educationLevelId);
+					interviewSelected.getCandidate().setEducationLevel(educationLevel);
+				}
 
-			// return "search_candidate";
+				///
+
+				if (requirementSelected != null && requirementSelected.length() > 0) {
+					Integer reqId = Integer.parseInt(requirementSelected);
+					RequirementUser reqUser = requirementUserService.findById(reqId,sessionBean.getUser().getId());
+					interviewSelected.setRequirementUser(reqUser);
+					
+					/*Integer requirementId = Integer.parseInt(requirementSelected);
+					Requirement requirement = new Requirement();
+					requirement.setId(requirementId);
+					interviewSelected.setRequirement(requirement);*/
+				}
+
+				if (recruitmentSourceSelected != null && recruitmentSourceSelected.length() > 0) {
+					Integer recruitmentSourceId = Integer.parseInt(recruitmentSourceSelected);
+					RecruitmentSource recruitmentSource = new RecruitmentSource();
+					recruitmentSource.setId(recruitmentSourceId);
+					interviewSelected.setRecruitmentSource(recruitmentSource);
+				}
+
+				if (interviewStateSelected != null && interviewStateSelected.length() > 0) {
+					Integer interviewStateId = Integer.parseInt(interviewStateSelected);
+					InterviewState interviewState = new InterviewState();
+					interviewState.setId(interviewStateId);
+					interviewSelected.setInterviewState(interviewState);
+				}
+				
+				if (interviewSelected.getCandidate().getId()!=null) {
+					System.out.println("interviewSelected.getCandidate().getId():"+interviewSelected.getCandidate().getId());
+				}else{
+					System.out.println("es nulo");
+				}
+
+				interviewSelected.setCreatedAt(new Date());
+				interviewSelected.setCreatedBy(sessionBean.getUser());
+				interviewService.add(interviewSelected);
+
+				
+				reset();
+				documentNumber="";
+				/*interviewSelected = new Interview();
+				interviewSelected.setCandidate(new Candidate());
+
+				countrySelected = "";
+				departmentSelected = "";
+				provinceSelected = "";
+				districtSelected = "";
+				educationLevelSelected = "";*/
+
+				// SE IMPRIME MENSAJE DE CONFIRMACION
+				facesUtil.sendConfirmMessage("Se creó satisfactoriamente.");
+
+			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			facesUtil.sendErrorMessage(e.getClass().getSimpleName(), e.getMessage());
+			facesUtil.sendErrorMessage(e.getMessage());
 		}
 	}
 
@@ -556,33 +674,20 @@ public class AddInterviewController implements Serializable {
 				throw new UserLoggedNotFoundException();
 			}
 
-			System.out.println("ingreso a onChangeState");
-			System.out.println(interviewStateSelected);
-			if (interviewStateSelected != null && interviewStateSelected.length()>0) {
-				
+			interviewStateSelected = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap()
+					.get("form:interviewState_input");
+
+			if (interviewStateSelected != null && interviewStateSelected.length() > 0) {
 				Integer interviewStateId = Integer.parseInt(interviewStateSelected);
-				
 				InterviewState interviewState = interviewStateService.findById(interviewStateId);
-
-				if (interviewState.getIsScheduled()) {
-					isScheduled = Boolean.TRUE;
-					isPending = Boolean.FALSE;
-					inOnChange = Boolean.TRUE;
-				} else {
-					isScheduled = Boolean.FALSE;
-					isPending = Boolean.TRUE;
-					inOnChange = Boolean.TRUE;
-				}
-
+				interviewSelected.setInterviewState(interviewState);
 			} else {
-				isScheduled = Boolean.FALSE;
-				isPending = Boolean.FALSE;
-				inOnChange = Boolean.FALSE;
+				interviewSelected.setInterviewState(null);
 			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			facesUtil.sendErrorMessage(e.getClass().getSimpleName(), e.getMessage());
+			facesUtil.sendErrorMessage(e.getMessage());
 		}
 	}
 
@@ -593,46 +698,20 @@ public class AddInterviewController implements Serializable {
 				throw new UserLoggedNotFoundException();
 			}
 
-			System.out.println("ingreso a onChangeRecruitmentSource");
-			System.out.println(recruimentSourceSelected);
+			recruitmentSourceSelected = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap()
+					.get("form:recruitmentSource_input");
 
-			if (recruimentSourceSelected != null && recruimentSourceSelected.length()>0) {
-
-				Integer recruitmentSourceId = Integer.parseInt(recruimentSourceSelected);
-
-				RecruitmentSource recruimentSourcesDto = recruimentSourceService.findById(recruitmentSourceId);
-
-				if (recruimentSourcesDto.getIsFlier() != null && recruimentSourcesDto.getIsFlier()) {
-
-					isFlier = Boolean.TRUE;
-					isJobFair = Boolean.FALSE;
-					isReferred = Boolean.FALSE;
-
-				} else if (recruimentSourcesDto.getIsJobFair() != null && recruimentSourcesDto.getIsJobFair()) {
-					isFlier = Boolean.FALSE;
-					isJobFair = Boolean.TRUE;
-					isReferred = Boolean.FALSE;
-
-				} else if (recruimentSourcesDto.getIsReferred() != null && recruimentSourcesDto.getIsReferred()) {
-					isFlier = Boolean.FALSE;
-					isJobFair = Boolean.FALSE;
-					isReferred = Boolean.TRUE;
-
-				} else {
-					isFlier = Boolean.FALSE;
-					isJobFair = Boolean.FALSE;
-					isReferred = Boolean.FALSE;
-				}
-
+			if (recruitmentSourceSelected != null && recruitmentSourceSelected.length() > 0) {
+				Integer recruitmentSourceId = Integer.parseInt(recruitmentSourceSelected);
+				RecruitmentSource recruimentSource = recruimentSourceService.findById(recruitmentSourceId);
+				interviewSelected.setRecruitmentSource(recruimentSource);
 			} else {
-				isFlier = Boolean.FALSE;
-				isJobFair = Boolean.FALSE;
-				isReferred = Boolean.FALSE;
+				interviewSelected.setRecruitmentSource(null);
 			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			facesUtil.sendErrorMessage(e.getClass().getSimpleName(), e.getMessage());
+			facesUtil.sendErrorMessage(e.getMessage());
 		}
 	}
 
@@ -724,20 +803,20 @@ public class AddInterviewController implements Serializable {
 		this.districtSelected = districtSelected;
 	}
 
-	public List<SelectItem> getRecruimentSources() {
-		return recruimentSources;
+	public List<SelectItem> getRecruitmentSources() {
+		return recruitmentSources;
 	}
 
-	public void setRecruimentSources(List<SelectItem> recruimentSources) {
-		this.recruimentSources = recruimentSources;
+	public void setRecruitmentSources(List<SelectItem> recruitmentSources) {
+		this.recruitmentSources = recruitmentSources;
 	}
 
-	public String getRecruimentSourceSelected() {
-		return recruimentSourceSelected;
+	public String getRecruitmentSourceSelected() {
+		return recruitmentSourceSelected;
 	}
 
-	public void setRecruimentSourceSelected(String recruimentSourceSelected) {
-		this.recruimentSourceSelected = recruimentSourceSelected;
+	public void setRecruitmentSourceSelected(String recruitmentSourceSelected) {
+		this.recruitmentSourceSelected = recruitmentSourceSelected;
 	}
 
 	public List<SelectItem> getEducationLevels() {
@@ -780,61 +859,13 @@ public class AddInterviewController implements Serializable {
 		this.maxDate = maxDate;
 	}
 
-	public Boolean getIsJobFair() {
-		return isJobFair;
-	}
-
-	public void setIsJobFair(Boolean isJobFair) {
-		this.isJobFair = isJobFair;
-	}
-
-	public Boolean getIsFlier() {
-		return isFlier;
-	}
-
-	public void setIsFlier(Boolean isFlier) {
-		this.isFlier = isFlier;
-	}
-
-	public Boolean getIsReferred() {
-		return isReferred;
-	}
-
-	public void setIsReferred(Boolean isReferred) {
-		this.isReferred = isReferred;
-	}
-
-	public Boolean getIsScheduled() {
-		return isScheduled;
-	}
-
-	public void setIsScheduled(Boolean isScheduled) {
-		this.isScheduled = isScheduled;
-	}
-
-	public Boolean getIsPending() {
-		return isPending;
-	}
-
-	public void setIsPending(Boolean isPending) {
-		this.isPending = isPending;
-	}
-
-	public Boolean getInOnChange() {
-		return inOnChange;
-	}
-
-	public void setInOnChange(Boolean inOnChange) {
-		this.inOnChange = inOnChange;
-	}
-
-	public String getInfo() {
+	/*public String getInfo() {
 		return info;
 	}
 
 	public void setInfo(String info) {
 		this.info = info;
-	}
+	}*/
 
 	public String getDocumentNumber() {
 		return documentNumber;
@@ -860,20 +891,22 @@ public class AddInterviewController implements Serializable {
 		this.requirementSelected = requirementSelected;
 	}
 
-	public String getAreaSelected() {
-		return areaSelected;
+
+
+	public Boolean getValidation() {
+		return validation;
 	}
 
-	public void setAreaSelected(String areaSelected) {
-		this.areaSelected = areaSelected;
+	public void setValidation(Boolean validation) {
+		this.validation = validation;
 	}
 
-	public String getSubAreaSelected() {
-		return subAreaSelected;
+	public String getPasswordSupervisor() {
+		return passwordSupervisor;
 	}
 
-	public void setSubAreaSelected(String subAreaSelected) {
-		this.subAreaSelected = subAreaSelected;
+	public void setPasswordSupervisor(String passwordSupervisor) {
+		this.passwordSupervisor = passwordSupervisor;
 	}
 	
 	
